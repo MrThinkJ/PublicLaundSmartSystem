@@ -1,9 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.payload;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -11,10 +8,11 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LocationDto {
+@Builder
+public class LocationSummaryDto {
     private Integer id;
     private String name;
     private String address;
     private Integer machineCount;
-    private List<Integer> machines;
+    private List<Integer> machineIds;
 }

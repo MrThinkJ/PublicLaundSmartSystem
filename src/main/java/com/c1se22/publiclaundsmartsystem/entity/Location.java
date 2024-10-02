@@ -24,5 +24,5 @@ public class Location {
     @Column(name = "address", nullable = false)
     private String address;
     @OneToMany(mappedBy = "location")
-    private Set<Machine> machine;
+    private Set<Machine> machines;
 }
