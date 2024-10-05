@@ -18,7 +18,7 @@ public class WashingType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "type_id")
-    private Integer typeId;
+    private Integer id;
     @Column(name = "type_name", nullable = false)
     private String typeName;
     @Column(name = "default_duration", nullable = false)
