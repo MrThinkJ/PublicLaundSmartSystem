@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.entity;
 
+import com.c1se22.publiclaundsmartsystem.enums.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,8 +23,9 @@ public class Transaction {
     private Integer id;
     @Column(name = "amount", precision = 10, scale = 2, nullable = false)
     private BigDecimal amount;
+    @Enumerated(EnumType.STRING)
     @Column(name = "transaction_status", nullable = false)
-    private String status;
+    private TransactionStatus status;
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
     @ManyToOne(fetch = FetchType.LAZY)

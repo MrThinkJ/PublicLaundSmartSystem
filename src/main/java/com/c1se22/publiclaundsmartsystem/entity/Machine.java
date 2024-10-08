@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.entity;
 
+import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,8 +24,9 @@ public class Machine {
     private String model;
     @Column(name = "capacity", nullable = false)
     private Integer capacity;
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status;
+    private MachineStatus status;
     @Column(name = "last_maintenance_date", nullable = false)
     private LocalDate lastMaintenanceDate;
     @Column(name = "installation_date", nullable = false)
