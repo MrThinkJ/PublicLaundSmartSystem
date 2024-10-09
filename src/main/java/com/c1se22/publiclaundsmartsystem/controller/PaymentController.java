@@ -6,7 +6,6 @@ import com.c1se22.publiclaundsmartsystem.payload.PaymentLinkDto;
 import com.c1se22.publiclaundsmartsystem.service.PaymentProcessingService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
