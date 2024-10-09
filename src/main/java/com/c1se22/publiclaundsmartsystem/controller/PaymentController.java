@@ -37,4 +37,10 @@ public class PaymentController {
     public ResponseEntity<ObjectNode> confirmWebhook(@RequestBody Map<String, String> requestBody) {
         return ResponseEntity.ok(paymentProcessingService.confirmWebhook(requestBody.get("webhookUrl")));
     }
+
+    @PostMapping("transfer-handler")
+    public ResponseEntity<ObjectNode> transferHandler(@RequestBody ObjectNode body) {
+        paymentProcessingService.payosTransferHandler(body);
+        return ResponseEntity.ok().build();
+    }
 }
