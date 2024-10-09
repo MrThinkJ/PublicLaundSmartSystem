@@ -102,6 +102,8 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
             WebhookData data = payOS.verifyPaymentWebhookData(webhookBody);
             if (webhookBody.getSuccess()){
                 // TODO: Handle successful payos transfer
+                // TODO: Insert the transaction data to the database
+                System.out.println("Payos transfer success");
             }
         } catch (Exception e){
             throw new PaymentProcessingException("Failed to handle payos transfer. Error: "+e.getMessage());
