@@ -24,9 +24,9 @@ public class Machine {
     private String model;
     @Column(name = "capacity", nullable = false)
     private Integer capacity;
-    @Enumerated(EnumType.STRING)
+//    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private MachineStatus status;
+    private String status;
     @Column(name = "last_maintenance_date", nullable = false)
     private LocalDate lastMaintenanceDate;
     @Column(name = "installation_date", nullable = false)

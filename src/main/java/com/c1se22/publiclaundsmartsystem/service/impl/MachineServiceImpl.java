@@ -2,6 +2,7 @@ package com.c1se22.publiclaundsmartsystem.service.impl;
 
 import com.c1se22.publiclaundsmartsystem.entity.Location;
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
+import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
 import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
 import com.c1se22.publiclaundsmartsystem.repository.LocationRepository;
