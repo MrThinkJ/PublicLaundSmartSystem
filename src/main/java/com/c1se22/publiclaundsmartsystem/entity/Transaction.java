@@ -3,6 +3,7 @@ package com.c1se22.publiclaundsmartsystem.entity;
 import com.c1se22.publiclaundsmartsystem.enums.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
