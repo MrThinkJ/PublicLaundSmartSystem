@@ -11,4 +11,6 @@ public class CreatePaymentLinkRequestBody {
     private String productName;
     private String description;
     private int price;
+    private Integer userId;
+    private Integer machineId;
 }
