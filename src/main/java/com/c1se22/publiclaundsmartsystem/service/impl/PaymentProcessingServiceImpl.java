@@ -1,10 +1,15 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
+import com.c1se22.publiclaundsmartsystem.entity.*;
+import com.c1se22.publiclaundsmartsystem.entity.Transaction;
+import com.c1se22.publiclaundsmartsystem.enums.TransactionStatus;
 import com.c1se22.publiclaundsmartsystem.exception.PaymentProcessingException;
+import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
 import com.c1se22.publiclaundsmartsystem.payload.CheckoutResponseDto;
 import com.c1se22.publiclaundsmartsystem.payload.CreatePaymentLinkRequestBody;
 import com.c1se22.publiclaundsmartsystem.payload.PaymentLinkDto;
 import com.c1se22.publiclaundsmartsystem.payload.PayosTransactionDto;
+import com.c1se22.publiclaundsmartsystem.repository.*;
 import com.c1se22.publiclaundsmartsystem.service.PaymentProcessingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -13,6 +18,8 @@ import org.springframework.stereotype.Service;
 import vn.payos.PayOS;
 import vn.payos.type.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.stream.Collectors;
 
@@ -20,14 +27,23 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class PaymentProcessingServiceImpl implements PaymentProcessingService {
     PayOS payOS;
+    TransactionRepository transactionRepository;
+    UsageHistoryRepository usageHistoryRepository;
+    UserRepository userRepository;
+    MachineRepository machineRepository;
+    WashingTypeRepository washingTypeRepository;
     @Override
-    public CheckoutResponseDto createPaymentLink(CreatePaymentLinkRequestBody RequestBody) {
+    public CheckoutResponseDto createPaymentLink(CreatePaymentLinkRequestBody requestBody) {
+        User user = userRepository.findById(requestBody.getUserId()).orElseThrow(() ->
+                new ResourceNotFoundException("User", "id", requestBody.getUserId()));
+        Machine machine = machineRepository.findById(requestBody.getMachineId()).orElseThrow(() ->
+                new ResourceNotFoundException("Machine", "id", requestBody.getMachineId()));
         try {
-            final String productName = RequestBody.getProductName();
-            final String description = RequestBody.getDescription();
+            final String productName = requestBody.getProductName();
+            final String description = requestBody.getDescription();
             final String returnUrl = "/success";
             final String cancelUrl = "/cancel";
-            final int price = RequestBody.getPrice();
+            final int price = requestBody.getPrice();
 
             String currentTimeString = String.valueOf(new Date().getTime());
             long orderCode = Long.parseLong(currentTimeString.substring(currentTimeString.length() - 6));
@@ -38,7 +54,15 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                     .item(item).returnUrl(returnUrl).cancelUrl(cancelUrl).build();
 
             CheckoutResponseData data = payOS.createPaymentLink(paymentData);
-
+            Transaction transaction = Transaction.builder()
+                    .amount(BigDecimal.valueOf(data.getAmount()))
+                    .timestamp(LocalDateTime.now())
+                    .status(TransactionStatus.PENDING)
+                    .user(user)
+                    .machine(machine)
+                    .paymentId(data.getPaymentLinkId())
+                    .build();
+            transactionRepository.save(transaction);
             return CheckoutResponseDto.builder()
                     .accountNumber(data.getAccountNumber())
                     .accountName(data.getAccountName())
@@ -68,6 +92,9 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
     public PaymentLinkDto cancelPaymentLink(long paymentLinkId) {
         try{
             PaymentLinkData data = payOS.cancelPaymentLink(paymentLinkId, null);
+            Transaction transaction = transactionRepository.findByPaymentId(data.getId());
+            transaction.setStatus(TransactionStatus.CANCELLED);
+            transactionRepository.save(transaction);
             return mapToPaymentLinkDto(data);
         } catch (Exception e) {
             throw new PaymentProcessingException("Failed to get payment link data. Error: "+e.getMessage());
@@ -101,9 +128,19 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                     .build();
             WebhookData data = payOS.verifyPaymentWebhookData(webhookBody);
             if (webhookBody.getSuccess()){
-                // TODO: Handle successful payos transfer
-                // TODO: Insert the transaction data to the database
-                System.out.println("Payos transfer success");
+                Transaction transaction = transactionRepository.findByPaymentId(data.getPaymentLinkId());
+                transaction.setStatus(TransactionStatus.COMPLETED);
+                transactionRepository.save(transaction);
+                WashingType washingType = washingTypeRepository.findById(transaction.getWashingType().getId()).orElseThrow(() ->
+                        new ResourceNotFoundException("WashingType", "id", 1));
+                UsageHistory usageHistory = UsageHistory.builder()
+                        .user(transaction.getUser())
+                        .machine(transaction.getMachine())
+                        .washingType(washingType)
+                        .startTime(LocalDateTime.now())
+                        .endTime(LocalDateTime.now().plusMinutes(washingType.getDefaultDuration()))
+                        .build();
+                usageHistoryRepository.save(usageHistory);
             }
         } catch (Exception e){
             throw new PaymentProcessingException("Failed to handle payos transfer. Error: "+e.getMessage());
