@@ -20,7 +20,7 @@ public class UsageHistory {
     private Integer usageId;
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
-    @Column(name = "end_time", nullable = false)
+    @Column(name = "end_time")
     private LocalDateTime endTime;
     @Column(name = "cost", precision = 10, scale = 2, nullable = false)
     private BigDecimal cost;

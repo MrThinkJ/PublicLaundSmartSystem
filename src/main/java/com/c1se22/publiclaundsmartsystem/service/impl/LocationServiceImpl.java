@@ -92,7 +92,7 @@ public class LocationServiceImpl implements LocationService {
                 .name(machine.getName())
                 .model(machine.getModel())
                 .capacity(machine.getCapacity())
-                .status(machine.getStatus())
+                .status(String.valueOf(machine.getStatus()))
                 .locationName(machine.getLocation().getName())
                 .locationAddress(machine.getLocation().getAddress())
                 .build();
