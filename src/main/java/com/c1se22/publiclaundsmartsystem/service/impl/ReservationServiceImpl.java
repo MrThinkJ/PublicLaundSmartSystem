@@ -12,6 +12,7 @@ import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.repository.ReservationRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.repository.WashingTypeRepository;
+import com.c1se22.publiclaundsmartsystem.service.MachineService;
 import com.c1se22.publiclaundsmartsystem.service.ReservationService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class ReservationServiceImpl implements ReservationService {
     UserRepository userRepository;
     MachineRepository machineRepository;
     WashingTypeRepository washingTypeRepository;
+    MachineService machineService;
 
     @Override
     public List<ReservationResponseDto> getAllReservations() {
@@ -86,6 +88,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .machine(machine)
                 .washingType(washingType)
                 .build();
+        machineService.updateMachineStatus(machine.getId(), "IN_USE");
         return mapToResponseDto(reservationRepository.save(reservation));
     }
 
