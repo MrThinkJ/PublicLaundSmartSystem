@@ -55,4 +55,9 @@ public class MachineController {
     public ResponseEntity<MachineDto> updateMachineStatus(@PathVariable Integer id, @RequestParam String status) {
         return ResponseEntity.ok(machineService.updateMachineStatus(id, status));
     }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<MachineDto>> getMachinesAreBeingUsedByUser(@PathVariable Integer userId) {
+        return ResponseEntity.ok(machineService.getMachinesAreBeingUsedByUser(userId));
+    }
 }
