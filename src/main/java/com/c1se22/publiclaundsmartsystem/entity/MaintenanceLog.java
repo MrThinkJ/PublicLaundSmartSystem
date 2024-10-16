@@ -28,6 +28,8 @@ public class MaintenanceLog {
     private BigDecimal maintenanceCost;
     @Column(name = "maintenance_date", nullable = false)
     private LocalDate maintenanceDate;
+    @Column(name = "completion_date", nullable = false)
+    private LocalDate completionDate;
     @Column(name = "technician_name", nullable = false)
     private String technicianName;
     @ManyToOne(fetch = FetchType.LAZY)
