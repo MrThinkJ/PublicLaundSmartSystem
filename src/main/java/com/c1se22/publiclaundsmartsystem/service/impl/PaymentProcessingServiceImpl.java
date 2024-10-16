@@ -138,7 +138,7 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                         .machine(transaction.getMachine())
                         .washingType(washingType)
                         .startTime(LocalDateTime.now())
-                        .endTime(LocalDateTime.now().plusMinutes(washingType.getDefaultDuration()))
+                        .endTime(null)
                         .build();
                 usageHistoryRepository.save(usageHistory);
             }

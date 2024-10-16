@@ -52,7 +52,7 @@ public class MachineServiceImpl implements MachineService{
                 .name(machineDto.getName())
                 .model(machineDto.getModel())
                 .capacity(machineDto.getCapacity())
-                .status(machineDto.getStatus())
+                .status(MachineStatus.AVAILABLE)
                 .location(location)
                 .lastMaintenanceDate(LocalDate.now())
                 .installationDate(LocalDate.now())
@@ -69,7 +69,6 @@ public class MachineServiceImpl implements MachineService{
         machine.setName(machineDto.getName());
         machine.setModel(machineDto.getModel());
         machine.setCapacity(machineDto.getCapacity());
-        machine.setStatus(machineDto.getStatus());
         machine.setLocation(location);
         return mapToDto(machineRepository.save(machine));
     }
@@ -85,8 +84,14 @@ public class MachineServiceImpl implements MachineService{
     public MachineDto updateMachineStatus(Integer id, String status) {
         Machine machine = machineRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Machine", "id", id));
-        machine.setStatus(status);
+        MachineStatus machineStatus = MachineStatus.valueOf(status.toUpperCase());
+        machine.setStatus(machineStatus);
         return mapToDto(machineRepository.save(machine));
+    }
+
+    @Override
+    public List<MachineDto> getMachinesAreBeingUsedByUser(Integer userId) {
+        return machineRepository.findMachinesAreBeingUsedByUser(userId).stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
 
@@ -96,7 +101,7 @@ public class MachineServiceImpl implements MachineService{
                 .name(machine.getName())
                 .model(machine.getModel())
                 .capacity(machine.getCapacity())
-                .status(machine.getStatus())
+                .status(String.valueOf(machine.getStatus()))
                 .build();
         if (machine.getLocation() != null) {
             machineDto.setLocationId(machine.getLocation().getId());
