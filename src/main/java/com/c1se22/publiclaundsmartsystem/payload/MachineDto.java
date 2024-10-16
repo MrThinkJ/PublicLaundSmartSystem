@@ -1,6 +1,5 @@
 package com.c1se22.publiclaundsmartsystem.payload;
 
-import jakarta.persistence.Column;
 import lombok.*;
 
 @Getter
