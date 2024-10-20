@@ -28,16 +28,11 @@ import java.util.stream.Collectors;
 public class PaymentProcessingServiceImpl implements PaymentProcessingService {
     PayOS payOS;
     TransactionRepository transactionRepository;
-    UsageHistoryRepository usageHistoryRepository;
     UserRepository userRepository;
-    MachineRepository machineRepository;
-    WashingTypeRepository washingTypeRepository;
     @Override
     public CheckoutResponseDto createPaymentLink(CreatePaymentLinkRequestBody requestBody) {
         User user = userRepository.findById(requestBody.getUserId()).orElseThrow(() ->
                 new ResourceNotFoundException("User", "id", requestBody.getUserId()));
-        Machine machine = machineRepository.findById(requestBody.getMachineId()).orElseThrow(() ->
-                new ResourceNotFoundException("Machine", "id", requestBody.getMachineId()));
         try {
             final String productName = requestBody.getProductName();
             final String description = requestBody.getDescription();
@@ -59,7 +54,6 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                     .timestamp(LocalDateTime.now())
                     .status(TransactionStatus.PENDING)
                     .user(user)
-                    .machine(machine)
                     .paymentId(data.getPaymentLinkId())
                     .build();
             transactionRepository.save(transaction);
@@ -131,16 +125,9 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                 Transaction transaction = transactionRepository.findByPaymentId(data.getPaymentLinkId());
                 transaction.setStatus(TransactionStatus.COMPLETED);
                 transactionRepository.save(transaction);
-                WashingType washingType = washingTypeRepository.findById(transaction.getWashingType().getId()).orElseThrow(() ->
-                        new ResourceNotFoundException("WashingType", "id", 1));
-                UsageHistory usageHistory = UsageHistory.builder()
-                        .user(transaction.getUser())
-                        .machine(transaction.getMachine())
-                        .washingType(washingType)
-                        .startTime(LocalDateTime.now())
-                        .endTime(null)
-                        .build();
-                usageHistoryRepository.save(usageHistory);
+                User user = transaction.getUser();
+                user.setBalance(user.getBalance().add(BigDecimal.valueOf(data.getAmount())));
+                userRepository.save(user);
             }
         } catch (Exception e){
             throw new PaymentProcessingException("Failed to handle payos transfer. Error: "+e.getMessage());

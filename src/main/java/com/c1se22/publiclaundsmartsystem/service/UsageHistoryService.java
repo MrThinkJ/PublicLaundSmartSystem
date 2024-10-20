@@ -11,7 +11,8 @@ import java.util.Map;
 public interface UsageHistoryService {
     List<UsageHistoryDto> getAllUsageHistories();
     UsageHistoryDto getUsageHistoryById(Integer id);
-    UsageHistoryDto createUsageHistory(UsageHistoryDto usageHistoryDto);
+    void createUsageHistory(UsageHistoryDto usageHistoryDto);
+    void completeUsageHistory(Integer id);
     void deleteUsageHistory(Integer id);
     List<UsageHistoryDto> getUsageHistoriesBetween(LocalDateTime start, LocalDateTime end);
     Map<String, Long> getUsageCountByWashingType(LocalDateTime start, LocalDateTime end);

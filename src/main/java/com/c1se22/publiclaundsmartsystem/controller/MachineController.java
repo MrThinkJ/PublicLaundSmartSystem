@@ -2,6 +2,7 @@ package com.c1se22.publiclaundsmartsystem.controller;
 
 import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
+import com.c1se22.publiclaundsmartsystem.service.impl.MachineServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.ResponseEntity;
