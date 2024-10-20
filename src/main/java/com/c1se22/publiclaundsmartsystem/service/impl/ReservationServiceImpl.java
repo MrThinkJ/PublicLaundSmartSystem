@@ -1,22 +1,23 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
-import com.c1se22.publiclaundsmartsystem.entity.Machine;
-import com.c1se22.publiclaundsmartsystem.entity.Reservation;
-import com.c1se22.publiclaundsmartsystem.entity.User;
-import com.c1se22.publiclaundsmartsystem.entity.WashingType;
+import com.c1se22.publiclaundsmartsystem.entity.*;
 import com.c1se22.publiclaundsmartsystem.enums.ReservationStatus;
+import com.c1se22.publiclaundsmartsystem.exception.InsufficientBalanceException;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationResponseDto;
+import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
 import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.repository.ReservationRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.repository.WashingTypeRepository;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
 import com.c1se22.publiclaundsmartsystem.service.ReservationService;
+import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,6 +30,7 @@ public class ReservationServiceImpl implements ReservationService {
     MachineRepository machineRepository;
     WashingTypeRepository washingTypeRepository;
     MachineService machineService;
+    UsageHistoryService usageHistoryService;
 
     @Override
     public List<ReservationResponseDto> getAllReservations() {
@@ -78,9 +80,16 @@ public class ReservationServiceImpl implements ReservationService {
         WashingType washingType = washingTypeRepository.findById(reservationDto.getWashingTypeId()).orElseThrow(
                 () -> new ResourceNotFoundException("WashingType", "washingTypeId", reservationDto.getWashingTypeId())
         );
+        // Check user balance
+        BigDecimal userBalance = user.getBalance();
+        BigDecimal washingTypeCost = washingType.getDefaultPrice();
+        
+        if (userBalance.compareTo(washingTypeCost) < 0) {
+            throw new InsufficientBalanceException("User does not have sufficient balance for this washing type.");
+        }
         Reservation reservation = Reservation.builder()
-                .startTime(null)
-                .endTime(null)
+                .startTime(LocalDateTime.now())
+                .endTime(LocalDateTime.now().plusMinutes(15))
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .status(ReservationStatus.PENDING)
@@ -120,9 +129,22 @@ public class ReservationServiceImpl implements ReservationService {
         );
         reservation.setStatus(ReservationStatus.COMPLETED);
         reservation.setUpdatedAt(LocalDateTime.now());
-        reservation.setStartTime(LocalDateTime.now());
-        reservation.setEndTime(LocalDateTime.now().plusMinutes(reservation.getWashingType().getDefaultDuration()));
-        return mapToResponseDto(reservationRepository.save(reservation));
+
+        // Save the updated reservation
+        Reservation savedReservation = reservationRepository.save(reservation);
+        
+        UsageHistoryDto usageHistoryDTO = UsageHistoryDto.builder()
+                .userId(savedReservation.getUser().getId())
+                .machineId(savedReservation.getMachine().getId())
+                .washingTypeId(savedReservation.getWashingType().getId())
+                .cost(savedReservation.getWashingType().getDefaultPrice())
+                .build();
+        usageHistoryService.createUsageHistory(usageHistoryDTO);
+        // Update user balance
+        User user = savedReservation.getUser();
+        user.setBalance(user.getBalance().subtract(savedReservation.getWashingType().getDefaultPrice()));
+        userRepository.save(user);
+        return mapToResponseDto(savedReservation);
     }
 
     @Override

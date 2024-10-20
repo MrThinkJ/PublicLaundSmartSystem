@@ -40,23 +40,20 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.createReservation(reservationDto));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ReservationResponseDto> updateReservation(@PathVariable Integer id, @RequestBody ReservationDto reservationDto){
-        return ResponseEntity.ok(reservationService.updateReservation(id, reservationDto));
-    }
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteReservation(@PathVariable Integer id){
-        reservationService.deleteReservation(id);
-        return ResponseEntity.ok("Reservation deleted");
-    }
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<String> deleteReservation(@PathVariable Integer id){
+//        reservationService.deleteReservation(id);
+//        return ResponseEntity.ok("Reservation deleted");
+//    }
+
     @PutMapping("/{id}/complete")
     public ResponseEntity<ReservationResponseDto> completeReservation(@PathVariable Integer id){
         return ResponseEntity.ok(reservationService.completeReservation(id));
     }
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<String> cancelReservation(@PathVariable Integer id){
+    public ResponseEntity<Boolean> cancelReservation(@PathVariable Integer id){
         reservationService.cancelReservation(id);
-        return ResponseEntity.ok("Reservation cancelled");
+        return ResponseEntity.ok(true);
     }
     @GetMapping("/period")
     public ResponseEntity<List<ReservationResponseDto>> getReservationsForPeriod(@RequestParam LocalDate start, @RequestParam LocalDate end){

@@ -35,10 +35,4 @@ public class Transaction {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "machine_id")
-    private Machine machine;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "washing_type_id")
-    private WashingType washingType;
 }

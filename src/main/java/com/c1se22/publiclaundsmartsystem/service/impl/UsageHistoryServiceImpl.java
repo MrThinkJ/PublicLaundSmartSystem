@@ -13,7 +13,6 @@ import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.repository.WashingTypeRepository;
 import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -46,11 +45,11 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
     }
 
     @Override
-    public UsageHistoryDto createUsageHistory(UsageHistoryDto usageHistoryDto) {
+    public void createUsageHistory(UsageHistoryDto usageHistoryDto) {
         UsageHistory usageHistory = new UsageHistory();
         usageHistory.setCost(usageHistoryDto.getCost());
-        usageHistory.setStartTime(usageHistoryDto.getStartTime());
-        usageHistory.setEndTime(usageHistoryDto.getEndTime());
+        usageHistory.setStartTime(LocalDateTime.now());
+        usageHistory.setEndTime(null);
         Machine machine = machineRepository.findById(usageHistoryDto.getMachineId()).orElseThrow(
                 () -> new ResourceNotFoundException("Machine", "id", usageHistoryDto.getMachineId())    
         );
@@ -64,7 +63,16 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         usageHistory.setWashingType(washingType);
         usageHistory.setUser(user);
         UsageHistory newUsageHistory = usageHistoryRepository.save(usageHistory);
-        return mapToDto(newUsageHistory);
+        mapToDto(newUsageHistory);
+    }
+
+    @Override
+    public void completeUsageHistory(Integer id) {
+        UsageHistory usageHistory = usageHistoryRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("UsageHistory", "id", id)
+        );
+        usageHistory.setEndTime(LocalDateTime.now());
+        usageHistoryRepository.save(usageHistory);  
     }
 
     @Override

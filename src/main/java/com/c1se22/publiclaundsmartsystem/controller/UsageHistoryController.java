@@ -21,16 +21,21 @@ public class UsageHistoryController {
     public ResponseEntity<List<UsageHistoryDto>> getAllUsageHistories() {
         return ResponseEntity.ok(usageHistoryService.getAllUsageHistories());
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<UsageHistoryDto> getUsageHistoryById(@PathVariable Integer id) {
         return ResponseEntity.ok(usageHistoryService.getUsageHistoryById(id));
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUsageHistory(@PathVariable Integer id) {
-        usageHistoryService.deleteUsageHistory(id);
-        return ResponseEntity.noContent().build();
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<Boolean> completeUsageHistory(@PathVariable Integer id) {
+        usageHistoryService.completeUsageHistory(id);
+        return ResponseEntity.ok(true);
     }
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Void> deleteUsageHistory(@PathVariable Integer id) {
+//        usageHistoryService.deleteUsageHistory(id);
+//        return ResponseEntity.noContent().build();
+//    }
 
     @GetMapping("/between")
     public ResponseEntity<List<UsageHistoryDto>> getUsageHistoriesBetween(@RequestParam String start, @RequestParam String end) {
