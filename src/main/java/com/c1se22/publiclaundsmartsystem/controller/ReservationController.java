@@ -50,6 +50,7 @@ public class ReservationController {
     public ResponseEntity<ReservationResponseDto> completeReservation(@PathVariable Integer id){
         return ResponseEntity.ok(reservationService.completeReservation(id));
     }
+
     @PutMapping("/{id}/cancel")
     public ResponseEntity<Boolean> cancelReservation(@PathVariable Integer id){
         reservationService.cancelReservation(id);
