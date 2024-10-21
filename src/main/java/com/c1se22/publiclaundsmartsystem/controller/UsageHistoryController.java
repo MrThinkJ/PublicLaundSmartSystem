@@ -26,6 +26,7 @@ public class UsageHistoryController {
     public ResponseEntity<UsageHistoryDto> getUsageHistoryById(@PathVariable Integer id) {
         return ResponseEntity.ok(usageHistoryService.getUsageHistoryById(id));
     }
+
     @PatchMapping("/{id}/complete")
     public ResponseEntity<Boolean> completeUsageHistory(@PathVariable Integer id) {
         usageHistoryService.completeUsageHistory(id);

@@ -36,7 +36,7 @@ public class Reservation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "machine_id")
     private Machine machine;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "washing_type_id")
     private WashingType washingType;
 }

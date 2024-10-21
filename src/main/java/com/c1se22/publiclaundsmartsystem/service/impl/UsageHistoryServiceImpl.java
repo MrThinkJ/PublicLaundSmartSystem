@@ -4,6 +4,7 @@ import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.entity.UsageHistory;
 import com.c1se22.publiclaundsmartsystem.entity.User;
 import com.c1se22.publiclaundsmartsystem.entity.WashingType;
+import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
 import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
 import com.c1se22.publiclaundsmartsystem.payload.UserUsageDto;
@@ -11,6 +12,7 @@ import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UsageHistoryRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.repository.WashingTypeRepository;
+import com.c1se22.publiclaundsmartsystem.service.MachineService;
 import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -31,6 +33,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
     MachineRepository machineRepository;
     WashingTypeRepository washingTypeRepository;
     UserRepository userRepository;
+    MachineService machineService;
     @Override
     public List<UsageHistoryDto> getAllUsageHistories() {
         return usageHistoryRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
@@ -72,6 +75,8 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
                 () -> new ResourceNotFoundException("UsageHistory", "id", id)
         );
         usageHistory.setEndTime(LocalDateTime.now());
+        Machine machine = usageHistory.getMachine();
+        machineService.updateMachineStatus(machine.getId(), "AVAILABLE");
         usageHistoryRepository.save(usageHistory);  
     }
 

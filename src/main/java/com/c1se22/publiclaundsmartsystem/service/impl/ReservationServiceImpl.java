@@ -77,6 +77,9 @@ public class ReservationServiceImpl implements ReservationService {
         Machine machine = machineRepository.findById(reservationDto.getMachineId()).orElseThrow(
                 () -> new ResourceNotFoundException("Machine", "machineId", reservationDto.getMachineId())
         );
+        if (!machine.getStatus().name().equals("AVAILABLE")) {
+            return null;
+        }
         WashingType washingType = washingTypeRepository.findById(reservationDto.getWashingTypeId()).orElseThrow(
                 () -> new ResourceNotFoundException("WashingType", "washingTypeId", reservationDto.getWashingTypeId())
         );
@@ -164,6 +167,8 @@ public class ReservationServiceImpl implements ReservationService {
         );
         reservation.setStatus(ReservationStatus.CANCELED);
         reservation.setUpdatedAt(LocalDateTime.now());
+        Machine machine = reservation.getMachine();
+        machineService.updateMachineStatus(machine.getId(), "AVAILABLE");
         reservationRepository.save(reservation);
     }
 
