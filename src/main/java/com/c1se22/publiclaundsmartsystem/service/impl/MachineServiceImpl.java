@@ -109,7 +109,6 @@ public class MachineServiceImpl implements MachineService{
         return machineRepository.findMachinesAreBeingUsedByUser(userId).stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
-
     private MachineDto mapToDto(Machine machine) {
         MachineDto machineDto = MachineDto.builder()
                 .id(machine.getId())

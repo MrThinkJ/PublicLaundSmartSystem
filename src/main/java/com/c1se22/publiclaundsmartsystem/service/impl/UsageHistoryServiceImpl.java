@@ -52,13 +52,13 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         UsageHistory usageHistory = new UsageHistory();
         usageHistory.setCost(usageHistoryDto.getCost());
         usageHistory.setStartTime(LocalDateTime.now());
-        usageHistory.setEndTime(null);
         Machine machine = machineRepository.findById(usageHistoryDto.getMachineId()).orElseThrow(
                 () -> new ResourceNotFoundException("Machine", "id", usageHistoryDto.getMachineId().toString())
         );
         WashingType washingType = washingTypeRepository.findById(usageHistoryDto.getWashingTypeId()).orElseThrow(   
                 () -> new ResourceNotFoundException("WashingType", "id", usageHistoryDto.getWashingTypeId().toString())
         );
+        usageHistory.setEndTime(LocalDateTime.now().plusMinutes(washingType.getDefaultDuration()));
         User user = userRepository.findById(usageHistoryDto.getUserId()).orElseThrow(
                 () -> new ResourceNotFoundException("User", "id", usageHistoryDto.getUserId().toString())
         );
@@ -74,10 +74,9 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         UsageHistory usageHistory = usageHistoryRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("UsageHistory", "id", id.toString())
         );
-        usageHistory.setEndTime(LocalDateTime.now());
         Machine machine = usageHistory.getMachine();
         machineService.updateMachineStatus(machine.getId(), "AVAILABLE");
-        usageHistoryRepository.save(usageHistory);  
+        usageHistoryRepository.save(usageHistory);
     }
 
     @Override
