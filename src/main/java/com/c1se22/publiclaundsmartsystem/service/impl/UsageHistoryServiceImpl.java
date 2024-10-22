@@ -42,7 +42,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
     @Override
     public UsageHistoryDto getUsageHistoryById(Integer id) {
         UsageHistory usageHistory = usageHistoryRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("UsageHistory", "id", id)
+                () -> new ResourceNotFoundException("UsageHistory", "id", id.toString())
         );
         return mapToDto(usageHistory);
     }
@@ -54,13 +54,13 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         usageHistory.setStartTime(LocalDateTime.now());
         usageHistory.setEndTime(null);
         Machine machine = machineRepository.findById(usageHistoryDto.getMachineId()).orElseThrow(
-                () -> new ResourceNotFoundException("Machine", "id", usageHistoryDto.getMachineId())    
+                () -> new ResourceNotFoundException("Machine", "id", usageHistoryDto.getMachineId().toString())
         );
         WashingType washingType = washingTypeRepository.findById(usageHistoryDto.getWashingTypeId()).orElseThrow(   
-                () -> new ResourceNotFoundException("WashingType", "id", usageHistoryDto.getWashingTypeId())
+                () -> new ResourceNotFoundException("WashingType", "id", usageHistoryDto.getWashingTypeId().toString())
         );
         User user = userRepository.findById(usageHistoryDto.getUserId()).orElseThrow(
-                () -> new ResourceNotFoundException("User", "id", usageHistoryDto.getUserId())
+                () -> new ResourceNotFoundException("User", "id", usageHistoryDto.getUserId().toString())
         );
         usageHistory.setMachine(machine);
         usageHistory.setWashingType(washingType);
@@ -72,7 +72,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
     @Override
     public void completeUsageHistory(Integer id) {
         UsageHistory usageHistory = usageHistoryRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("UsageHistory", "id", id)
+                () -> new ResourceNotFoundException("UsageHistory", "id", id.toString())
         );
         usageHistory.setEndTime(LocalDateTime.now());
         Machine machine = usageHistory.getMachine();
@@ -83,7 +83,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
     @Override
     public void deleteUsageHistory(Integer id) {
         UsageHistory usageHistory = usageHistoryRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("UsageHistory", "id", id)
+                () -> new ResourceNotFoundException("UsageHistory", "id", id.toString())
         );
         usageHistoryRepository.delete(usageHistory);
     }
@@ -102,7 +102,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
             Long count = (Long) result[1];
 
             WashingType washingType = washingTypeRepository.findById(washingTypeId)
-                .orElseThrow(() -> new ResourceNotFoundException("WashingType", "id", washingTypeId));
+                .orElseThrow(() -> new ResourceNotFoundException("WashingType", "id", washingTypeId.toString()));
 
             usageCountByWashingType.put(washingType.getTypeName(), count);
         }
@@ -118,7 +118,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
             BigDecimal totalCost = (BigDecimal) result[1];
             
             WashingType washingType = washingTypeRepository.findById(washingTypeId)
-                .orElseThrow(() -> new ResourceNotFoundException("WashingType", "id", washingTypeId));
+                .orElseThrow(() -> new ResourceNotFoundException("WashingType", "id", washingTypeId.toString()));
 
             revenueByWashingType.put(washingType.getTypeName(), totalCost);
         }
@@ -133,7 +133,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
             Integer userId = (Integer) result[0];
             Long count = (Long) result[1];
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId.toString()));
             return UserUsageDto.builder()
                     .userName(user.getUsername())
                     .usageCount(count)
@@ -151,7 +151,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
             Long count = (Long) result[1];
 
             User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId.toString()));
 
             userUsageCount.put(user.getUsername(), count);
         }

@@ -25,14 +25,14 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionDto getTransactionById(Integer id) {
         Transaction transaction = transactionRepository.findById(id)  
-                .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id.toString()));
         return mapToDto(transaction);
     }
 
     @Override
     public TransactionDto updateTransaction(Integer id, TransactionDto transactionDto) {
         Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id.toString()));
         transaction.setAmount(transactionDto.getAmount());
         transaction.setStatus(transactionDto.getStatus());
         Transaction updatedTransaction = transactionRepository.save(transaction);
@@ -42,7 +42,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public void deleteTransaction(Integer id) {
         Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id.toString()));
         transactionRepository.delete(transaction);
     }
 

@@ -41,14 +41,28 @@ public class MachineServiceImpl implements MachineService{
     @Override
     public MachineDto getMachineById(Integer id) {
         Machine machine = machineRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Machine", "id", id));
+                new ResourceNotFoundException("Machine", "id", id.toString()));
         return mapToDto(machine);
     }
 
     @Override
     public MachineDto addMachine(MachineDto machineDto) {
-        Location location = locationRepository.findById(machineDto.getLocationId()).orElseThrow(() ->
-                new ResourceNotFoundException("Location", "id", machineDto.getLocationId()));
+        Location location;
+        if (machineDto.getLocationId() != null){
+            location = locationRepository.findById(machineDto.getLocationId()).orElseThrow(() ->
+                    new ResourceNotFoundException("Location", "id", machineDto.getLocationId().toString()));
+        } else{
+            location = Location.builder()
+                    .name(machineDto.getLocationName())
+                    .address(machineDto.getLocationAddress())
+                    .city(machineDto.getLocationCity())
+                    .district(machineDto.getLocationDistrict())
+                    .ward(machineDto.getLocationWard())
+                    .lng(0.0)
+                    .lat(0.0)
+                    .build();
+            location = locationRepository.save(location);
+        }
         Machine machine = Machine.builder()
                 .name(machineDto.getName())
                 .model(machineDto.getModel())
@@ -64,9 +78,9 @@ public class MachineServiceImpl implements MachineService{
     @Override
     public MachineDto updateMachine(Integer id, MachineDto machineDto) {
         Machine machine = machineRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Machine", "id", id));
+                new ResourceNotFoundException("Machine", "id", id.toString()));
         Location location = locationRepository.findById(machineDto.getLocationId()).orElseThrow(() ->
-                new ResourceNotFoundException("Location", "id", machineDto.getLocationId()));
+                new ResourceNotFoundException("Location", "id", machineDto.getLocationId().toString()));
         machine.setName(machineDto.getName());
         machine.setModel(machineDto.getModel());
         machine.setCapacity(machineDto.getCapacity());
@@ -77,14 +91,14 @@ public class MachineServiceImpl implements MachineService{
     @Override
     public void deleteMachine(Integer id) {
         Machine machine = machineRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Machine", "id", id));
+                new ResourceNotFoundException("Machine", "id", id.toString()));
         machineRepository.delete(machine);
     }
 
     @Override
     public MachineDto updateMachineStatus(Integer id, String status) {
         Machine machine = machineRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Machine", "id", id));
+                new ResourceNotFoundException("Machine", "id", id.toString()));
         MachineStatus machineStatus = MachineStatus.valueOf(status.toUpperCase());
         machine.setStatus(machineStatus);
         return mapToDto(machineRepository.save(machine));
@@ -108,6 +122,11 @@ public class MachineServiceImpl implements MachineService{
             machineDto.setLocationId(machine.getLocation().getId());
             machineDto.setLocationName(machine.getLocation().getName());
             machineDto.setLocationAddress(machine.getLocation().getAddress());
+            machineDto.setLocationCity(machine.getLocation().getCity());
+            machineDto.setLocationDistrict(machine.getLocation().getDistrict());
+            machineDto.setLocationWard(machine.getLocation().getWard());
+            machineDto.setLocationLng(machine.getLocation().getLng());
+            machineDto.setLocationLat(machine.getLocation().getLat());
         }
         return machineDto;
     }

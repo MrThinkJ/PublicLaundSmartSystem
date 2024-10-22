@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getUserbyId(Integer id){
         User user = userRepository.findById(id).orElseThrow(()->
-                new ResourceNotFoundException("User", "id", id));
+                new ResourceNotFoundException("User", "id", id.toString()));
         return mapToUserDto(user);
     }
 
@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto updateUser(Integer id, UserDto userDto) {
         User user = userRepository.findById(id).orElseThrow(
-                ()-> new ResourceNotFoundException("User", "id", id)
+                ()-> new ResourceNotFoundException("User", "id", id.toString())
         );
         user.setUsername(userDto.getUsername());
         user.setPassword(userDto.getPassword());
@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Integer id) {
         User user = userRepository.findById(id).orElseThrow(
-                ()-> new ResourceNotFoundException("User", "id", id));
+                ()-> new ResourceNotFoundException("User", "id", id.toString()));
         userRepository.delete(user);
     }
 

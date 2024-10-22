@@ -35,6 +35,11 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.getReservationsByMachineId(id));
     }
 
+    @GetMapping("/pending/users/{id}")
+    public ResponseEntity<Integer> getPendingReservationByUserId(@PathVariable Integer id){
+        return ResponseEntity.ok(reservationService.getPendingReservationByUserId(id));
+    }
+
     @PostMapping
     public ResponseEntity<ReservationResponseDto> createReservation(@RequestBody ReservationDto reservationDto){
         return ResponseEntity.ok(reservationService.createReservation(reservationDto));

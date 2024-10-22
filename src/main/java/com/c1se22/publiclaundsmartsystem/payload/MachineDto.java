@@ -16,4 +16,9 @@ public class MachineDto {
     private Integer locationId;
     private String locationName;
     private String locationAddress;
+    private String locationCity;
+    private String locationDistrict;
+    private String locationWard;
+    private Double locationLng;
+    private Double locationLat;
 }
