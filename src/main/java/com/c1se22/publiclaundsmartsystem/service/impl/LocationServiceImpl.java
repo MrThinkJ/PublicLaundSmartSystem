@@ -29,7 +29,7 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public LocationDetailsDto getLocationById(Integer id) {
         Location location = locationRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Location", "id", id)
+                () -> new ResourceNotFoundException("Location", "id", id.toString())
         );
         return mapToLocationDetailsDto(location);
     }
@@ -39,6 +39,8 @@ public class LocationServiceImpl implements LocationService {
         Location location = new Location();
         location.setName(locationSummaryDto.getName());
         location.setAddress(locationSummaryDto.getAddress());
+        location.setLat(locationSummaryDto.getLat());
+        location.setLng(locationSummaryDto.getLng());
         location.setMachines(Set.of());
         return mapToLocationSummaryDto(locationRepository.save(location));
     }
@@ -46,9 +48,11 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public LocationSummaryDto updateLocation(Integer id, LocationSummaryDto locationSummaryDto) {
         Location location = locationRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Location", "id", id)
+                () -> new ResourceNotFoundException("Location", "id", id.toString())
         );
         location.setName(locationSummaryDto.getName());
+        location.setLat(locationSummaryDto.getLat());
+        location.setLng(locationSummaryDto.getLng());
         location.setAddress(locationSummaryDto.getAddress());
         return mapToLocationSummaryDto(locationRepository.save(location));
     }
@@ -57,7 +61,7 @@ public class LocationServiceImpl implements LocationService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteLocation(Integer id) {
         Location location = locationRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Location", "id", id)
+                () -> new ResourceNotFoundException("Location", "id", id.toString())
         );
         int rowEffect = machineRepository.updateLocationOfMachines(null,
                 List.copyOf(location.getMachines().stream().map(Machine::getId).toList()));
@@ -71,6 +75,8 @@ public class LocationServiceImpl implements LocationService {
                 .id(location.getId())
                 .name(location.getName())
                 .address(location.getAddress())
+                .lat(location.getLat())
+                .lng(location.getLng())
                 .machineCount(location.getMachines().size())
                 .machineIds(location.getMachines().stream().map(Machine::getId).toList())
                 .build();
@@ -81,6 +87,8 @@ public class LocationServiceImpl implements LocationService {
                 .id(location.getId())
                 .name(location.getName())
                 .address(location.getAddress())
+                .lat(location.getLat())
+                .lng(location.getLng())
                 .machineCount(location.getMachines().size())
                 .machines(location.getMachines().stream().map(this::mapToMachineDto).toList())
                 .build();

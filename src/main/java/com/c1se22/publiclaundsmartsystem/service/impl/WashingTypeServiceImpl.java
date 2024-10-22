@@ -27,7 +27,7 @@ public class WashingTypeServiceImpl implements WashingTypeService {
     @Override
     public WashingType updateWashingType(Integer washingTypeId, WashingType washingType) {
         WashingType washingTypeToUpdate = washingTypeRepository.findById(washingTypeId).orElseThrow(
-                () -> new ResourceNotFoundException("WashingType", "id", washingTypeId)
+                () -> new ResourceNotFoundException("WashingType", "id", washingTypeId.toString())
         );
         washingTypeToUpdate.setTypeName(washingType.getTypeName());
         washingTypeToUpdate.setDefaultDuration(washingType.getDefaultDuration());

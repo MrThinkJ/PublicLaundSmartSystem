@@ -32,7 +32,7 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
     @Override
     public CheckoutResponseDto createPaymentLink(CreatePaymentLinkRequestBody requestBody) {
         User user = userRepository.findById(requestBody.getUserId()).orElseThrow(() ->
-                new ResourceNotFoundException("User", "id", requestBody.getUserId()));
+                new ResourceNotFoundException("User", "id", requestBody.getUserId().toString()));
         try {
             final String productName = requestBody.getProductName();
             final String description = requestBody.getDescription();
