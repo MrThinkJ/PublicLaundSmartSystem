@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.c1se22.publiclaundsmartsystem.util.AppConstants.*;
 
 
 @RestController
