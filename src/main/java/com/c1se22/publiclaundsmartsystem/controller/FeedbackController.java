@@ -32,5 +32,9 @@ public class FeedbackController {
         return ResponseEntity.ok(feedbackService.addFeedback(feedbackDto));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<FeedbackDto> updateFeedback(@PathVariable Integer id, @RequestBody FeedbackDto feedbackDto){
+        return ResponseEntity.ok(feedbackService.updateFeedback(id, feedbackDto));
+    }
 
 }

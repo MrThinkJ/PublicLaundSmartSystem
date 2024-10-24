@@ -52,7 +52,20 @@ public class FeedbackServiceImpl implements FeedbackService {
 
     @Override
     public FeedbackDto updateFeedback(Integer id, FeedbackDto feedbackDto) {
-        return null;
+        Feedback feedback = feedbackRespository.findById(id).orElseThrow(
+                ()-> new ResourceNotFoundException("Feedback", "id", id)
+        );
+        feedback.setComment(feedbackDto.getComment());
+        feedback.setRating(feedbackDto.getRating());
+        feedback.setCreatedAt(feedbackDto.getCreatedAt());
+        User user = userRepository.findById(feedbackDto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", feedbackDto.getUserId()));
+
+        Machine machine = machineRepository.findById(feedbackDto.getMachineId())
+                .orElseThrow(() -> new ResourceNotFoundException("Machine", "id", feedbackDto.getMachineId()));
+        feedback.setUser(user);
+        feedback.setMachine(machine);
+        return mapToFeedbackDto(feedbackRespository.save(feedback));
     }
 
     @Override
