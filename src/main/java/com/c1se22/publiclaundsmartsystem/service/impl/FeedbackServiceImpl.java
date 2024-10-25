@@ -4,9 +4,6 @@ import com.c1se22.publiclaundsmartsystem.entity.Feedback;
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.entity.User;
 import com.c1se22.publiclaundsmartsystem.payload.FeedbackDto;
-import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
-
-import com.c1se22.publiclaundsmartsystem.payload.UserDto;
 import com.c1se22.publiclaundsmartsystem.repository.FeedbackRespository;
 import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
@@ -33,6 +30,14 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public List<FeedbackDto> getFeedbackByIdMachine(Integer machineId) {
         return feedbackRespository.findFeedbackByMachineId(machineId).stream().map(this::mapToFeedbackDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public FeedbackDto getFeedbackById(Integer id) {
+        Feedback feedback = feedbackRespository.findById(id).orElseThrow(
+                ()-> new ResourceNotFoundException("Feedback", "id", id)
+        );
+        return mapToFeedbackDto(feedback);
     }
 
     @Override
@@ -76,15 +81,14 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     private FeedbackDto mapToFeedbackDto(Feedback feedback){
-
-        FeedbackDto feedbackDto = new FeedbackDto();
-        feedbackDto.setId(feedback.getId());
-        feedbackDto.setComment(feedback.getComment());
-        feedbackDto.setRating(feedback.getRating());
-        feedbackDto.setCreatedAt(feedback.getCreatedAt());
-        feedbackDto.setUserId(feedback.getUser().getId());
-        feedbackDto.setMachineId(feedback.getMachine().getId());
-        return feedbackDto;
+        return FeedbackDto.builder()
+                .id(feedback.getId())
+                .rating(feedback.getRating())
+                .comment(feedback.getComment())
+                .createdAt(feedback.getCreatedAt())
+                .userId(feedback.getUser() != null ? feedback.getUser().getId() : null)
+                .machineId(feedback.getMachine() != null ? feedback.getMachine().getId() : null)
+                .build();
     }
 
 }

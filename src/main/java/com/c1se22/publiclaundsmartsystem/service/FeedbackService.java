@@ -7,6 +7,7 @@ import java.util.List;
 public interface FeedbackService {
     List<FeedbackDto> getAllFeedbacks();
     List<FeedbackDto> getFeedbackByIdMachine(Integer id);
+    FeedbackDto getFeedbackById(Integer id);
     FeedbackDto addFeedback(FeedbackDto feedbackDto);
     FeedbackDto updateFeedback(Integer id, FeedbackDto feedbackDto);
     void deleteFeedback(Integer id);

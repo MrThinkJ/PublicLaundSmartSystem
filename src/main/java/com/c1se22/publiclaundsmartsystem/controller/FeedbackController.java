@@ -1,6 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
 import com.c1se22.publiclaundsmartsystem.payload.FeedbackDto;
+import com.c1se22.publiclaundsmartsystem.payload.MaintenanceLogsDto;
 import com.c1se22.publiclaundsmartsystem.service.FeedbackService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -21,8 +22,12 @@ public class FeedbackController {
     public  ResponseEntity<List<FeedbackDto>> getFeedbacks(){
         return ResponseEntity.ok(feedbackService.getAllFeedbacks());
     }
+    @GetMapping ("/{id}")
+    public  ResponseEntity<FeedbackDto> getMaintenanceLogById(@PathVariable Integer id){
+        return ResponseEntity.ok(feedbackService.getFeedbackById(id));
+    }
 
-    @GetMapping ("/{machineId}")
+    @GetMapping ("/machine/{machineId}")
     public  ResponseEntity<List<FeedbackDto>> getFeedbackbyMachineId(@PathVariable Integer machineId){
         return ResponseEntity.ok(feedbackService.getFeedbackByIdMachine(machineId));
     }
