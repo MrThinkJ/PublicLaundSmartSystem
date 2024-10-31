@@ -18,11 +18,6 @@ import static com.c1se22.publiclaundsmartsystem.util.AppConstants.*;
 public class MachineController {
     MachineService machineService;
 
-//    @GetMapping
-//    public ResponseEntity<List<MachineDto>> getAllMachines() {
-//        return ResponseEntity.ok(machineService.getAllMachines());
-//    }
-
     @GetMapping
     public ResponseEntity<List<MachineDto>> getMachines(@RequestParam(defaultValue = DEFAULT_PAGE_NUMBER) int page,
                                                         @RequestParam(defaultValue = DEFAULT_PAGE_SIZE) int size,
@@ -60,5 +55,10 @@ public class MachineController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<MachineDto>> getMachinesAreBeingUsedByUser(@PathVariable Integer userId) {
         return ResponseEntity.ok(machineService.getMachinesAreBeingUsedByUser(userId));
+    }
+
+    @GetMapping("/user/{userId}/pending")
+    public ResponseEntity<MachineDto> getPendingMachinesByUser(@PathVariable Integer userId) {
+        return ResponseEntity.ok(machineService.getMachineAreBeingReservedByUser(userId));
     }
 }

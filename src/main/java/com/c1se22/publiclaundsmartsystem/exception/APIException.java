@@ -1,22 +1,17 @@
 package com.c1se22.publiclaundsmartsystem.exception;
 
+import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
 import lombok.Getter;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
 @Getter
-public class APIException extends RuntimeException{
-    private final HttpStatus status;
-    private final String message;
-
-    public APIException(HttpStatus status, String message){
-        this.status = status;
-        this.message = message;
+public class APIException extends BusinessException{
+    public APIException(HttpStatus httpStatus, ErrorCode errorCode, Object... args) {
+        super(httpStatus, errorCode, args);
     }
-
-    @Override
-    public String getMessage() {
-        return message;
+    public APIException(HttpStatus httpStatus, ErrorCode errorCode) {
+        super(httpStatus, errorCode);
     }
 }

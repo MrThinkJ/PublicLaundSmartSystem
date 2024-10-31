@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
+import com.c1se22.publiclaundsmartsystem.payload.FirebaseMachine;
 import com.c1se22.publiclaundsmartsystem.entity.Location;
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
@@ -8,12 +9,13 @@ import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
 import com.c1se22.publiclaundsmartsystem.repository.LocationRepository;
 import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
+import com.google.firebase.database.FirebaseDatabase;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class MachineServiceImpl implements MachineService{
     MachineRepository machineRepository;
     LocationRepository locationRepository;
+    FirebaseDatabase firebaseDatabase;
 
     @Override
     public List<MachineDto> getAllMachines() {
@@ -46,6 +49,7 @@ public class MachineServiceImpl implements MachineService{
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public MachineDto addMachine(MachineDto machineDto) {
         Location location;
         if (machineDto.getLocationId() != null){
@@ -72,7 +76,13 @@ public class MachineServiceImpl implements MachineService{
                 .lastMaintenanceDate(LocalDate.now())
                 .installationDate(LocalDate.now())
                 .build();
-        return mapToDto(machineRepository.save(machine));
+        Machine newMachine = machineRepository.save(machine);
+        FirebaseMachine firebaseMachine = FirebaseMachine.builder()
+                .id(machine.getId())
+                .status(String.valueOf(machine.getStatus()))
+                .build();
+        firebaseDatabase.getReference("machines").child(firebaseMachine.getId().toString()).setValueAsync(firebaseMachine);
+        return mapToDto(newMachine);
     }
 
     @Override
@@ -96,12 +106,24 @@ public class MachineServiceImpl implements MachineService{
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public MachineDto updateMachineStatus(Integer id, String status) {
         Machine machine = machineRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Machine", "id", id.toString()));
         MachineStatus machineStatus = MachineStatus.valueOf(status.toUpperCase());
         machine.setStatus(machineStatus);
-        return mapToDto(machineRepository.save(machine));
+        FirebaseMachine firebaseMachine = FirebaseMachine.builder()
+                .id(machine.getId())
+                .status(String.valueOf(machine.getStatus()))
+                .build();
+        Machine updatedMachine = machineRepository.save(machine);
+        firebaseDatabase.getReference("machines").child(firebaseMachine.getId().toString()).setValueAsync(firebaseMachine);
+        return mapToDto(updatedMachine);
+    }
+
+    @Override
+    public MachineDto getMachineAreBeingReservedByUser(Integer userId) {
+        return machineRepository.findMachineAreBeingReservedByUser(userId).map(this::mapToDto).orElse(null);
     }
 
     @Override

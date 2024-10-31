@@ -1,4 +1,4 @@
 package com.c1se22.publiclaundsmartsystem.service;
 
-public class AuthService {
+public interface AuthService {
 }
