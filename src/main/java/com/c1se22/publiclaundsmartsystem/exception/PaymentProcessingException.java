@@ -1,17 +1,13 @@
 package com.c1se22.publiclaundsmartsystem.exception;
 
+import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = "Payment processing failed")
 @Getter
-public class PaymentProcessingException extends RuntimeException{
+public class PaymentProcessingException extends BusinessException{
     public PaymentProcessingException(String message) {
-        super(message);
-    }
-    @Override
-    public String getMessage() {
-        return super.getMessage();
+        super(HttpStatus.BAD_REQUEST, ErrorCode.PAYMENT_PROCESSING_ERROR, message);
     }
 }

@@ -14,5 +14,6 @@ public interface MachineService {
     MachineDto updateMachine(Integer id, MachineDto machineDto);
     void deleteMachine(Integer id);
     MachineDto updateMachineStatus(Integer id, String status);
+    MachineDto getMachineAreBeingReservedByUser(Integer userId);
     List<MachineDto> getMachinesAreBeingUsedByUser(Integer userId);
 }

@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.security;
 
+import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
 import com.c1se22.publiclaundsmartsystem.exception.APIException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -56,13 +57,13 @@ public class JwtProvider {
                     .parse(token);
             return true;
         } catch(MalformedJwtException e){
-            throw new APIException(HttpStatus.BAD_REQUEST, "Invalid JWT");
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_JWT);
         } catch (ExpiredJwtException e){
-            throw new APIException(HttpStatus.BAD_REQUEST, "Expired JWT");
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.EXPIRED_JWT);
         } catch (UnsupportedJwtException e){
-            throw new APIException(HttpStatus.BAD_REQUEST, "Unsupported JWT");
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.UNSUPPORTED_JWT);
         } catch (IllegalArgumentException e){
-            throw new APIException(HttpStatus.BAD_REQUEST, "JWT claims string is empty");
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_JWT_CLAIMS);
         }
     }
 }
