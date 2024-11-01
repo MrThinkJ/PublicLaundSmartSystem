@@ -1,6 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.repository;
 
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
+import com.c1se22.publiclaundsmartsystem.payload.MachineInUseDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
