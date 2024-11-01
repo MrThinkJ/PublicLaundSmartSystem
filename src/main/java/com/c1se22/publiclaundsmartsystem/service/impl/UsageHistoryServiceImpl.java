@@ -7,6 +7,7 @@ import com.c1se22.publiclaundsmartsystem.entity.WashingType;
 import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
 import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
+import com.c1se22.publiclaundsmartsystem.payload.UsageReportDto;
 import com.c1se22.publiclaundsmartsystem.payload.UserUsageDto;
 import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UsageHistoryRepository;
@@ -168,6 +169,11 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         return usageHistoryRepository.countByStartTimeBetween(start, end);
     }
 
+    @Override
+    public List<UsageReportDto> UsageReport() {
+        return usageHistoryRepository.UsageReport().stream().map(this::mapToReportDto).collect(Collectors.toList());
+    }
+
     private UsageHistoryDto mapToDto(UsageHistory usageHistory) {
         return UsageHistoryDto.builder()
                 .usageId(usageHistory.getUsageId())
@@ -180,6 +186,20 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
                 .userName(usageHistory.getUser().getUsername())
                 .washingTypeId(usageHistory.getWashingType().getId())
                 .washingTypeName(usageHistory.getWashingType().getTypeName())
+                .build();
+    }
+
+    private UsageReportDto mapToReportDto(UsageHistory usageHistory){
+        return UsageReportDto.builder()
+                .userId(usageHistory.getUser().getId())
+                .userName(usageHistory.getUser().getFullname())
+                .machineName(usageHistory.getMachine().getName())
+                .locationName(usageHistory.getMachine().getLocation().getName())
+                .address(usageHistory.getMachine().getLocation().getAddress())
+                .cots(usageHistory.getCost())
+                .startTime(usageHistory.getStartTime())
+                .endTime(usageHistory.getEndTime())
+                .typeWash(String.valueOf(usageHistory.getWashingType()))
                 .build();
     }
 }

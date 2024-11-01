@@ -4,6 +4,7 @@ import com.c1se22.publiclaundsmartsystem.entity.*;
 import com.c1se22.publiclaundsmartsystem.enums.ReservationStatus;
 import com.c1se22.publiclaundsmartsystem.exception.InsufficientBalanceException;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
+import com.c1se22.publiclaundsmartsystem.payload.MachineInUseDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationResponseDto;
 import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -204,6 +206,11 @@ public class ReservationServiceImpl implements ReservationService {
         return 0;
     }
 
+    @Override
+    public List<MachineInUseDto> findMachineInUse() {
+        return reservationRepository.findMachineInUse().stream().map(this::mapToInUseDto).collect(Collectors.toList());
+    }
+
     private ReservationResponseDto mapToResponseDto(Reservation reservation) {
         return ReservationResponseDto.builder()
                 .reservationId(reservation.getReservationId())
@@ -220,6 +227,20 @@ public class ReservationServiceImpl implements ReservationService {
                 .userId(reservation.getUser().getId())
                 .machineId(reservation.getMachine().getId())
                 .washingTypeId(reservation.getWashingType().getId())
+                .build();
+    }
+
+    private MachineInUseDto mapToInUseDto( Reservation reservation){
+        return MachineInUseDto.builder()
+                .machineId(reservation.getMachine().getId())
+                .machineName(reservation.getMachine().getName())
+                .status(String.valueOf(reservation.getMachine().getStatus()))
+                .locationName(reservation.getMachine().getLocation().getName())
+                .address(reservation.getMachine().getLocation() != null ? reservation.getMachine().getLocation().getAddress() : "Null")
+                .startTime(reservation.getStartTime())
+                .endTime(reservation.getEndTime())
+                .userName(reservation.getUser().getUsername())
+                .userId(reservation.getUser().getId())
                 .build();
     }
 }

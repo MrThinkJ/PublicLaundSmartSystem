@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
+import com.c1se22.publiclaundsmartsystem.payload.MachineInUseDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationResponseDto;
 import com.c1se22.publiclaundsmartsystem.service.ReservationService;
@@ -33,6 +34,11 @@ public class ReservationController {
     @GetMapping("/machine/{id}")
     public ResponseEntity<List<ReservationResponseDto>> getReservationsByMachineId(@PathVariable Integer id){
         return ResponseEntity.ok(reservationService.getReservationsByMachineId(id));
+    }
+
+    @GetMapping("/machines/inuse")
+    public ResponseEntity<List<MachineInUseDto>> getMachineInUse(){
+        return ResponseEntity.ok(reservationService.findMachineInUse());
     }
 
     @PostMapping

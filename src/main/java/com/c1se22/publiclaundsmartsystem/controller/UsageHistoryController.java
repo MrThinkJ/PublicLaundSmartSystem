@@ -1,6 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
 import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
+import com.c1se22.publiclaundsmartsystem.payload.UsageReportDto;
 import com.c1se22.publiclaundsmartsystem.payload.UserUsageDto;
 import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
 import lombok.AllArgsConstructor;
@@ -85,5 +86,10 @@ public class UsageHistoryController {
         LocalDateTime startDate = LocalDateTime.parse(start);
         LocalDateTime endDate = LocalDateTime.parse(end);
         return ResponseEntity.ok(usageHistoryService.getTotalUsageCount(startDate, endDate));
+    }
+
+    @GetMapping("/report")
+    public ResponseEntity<List<UsageReportDto>> UsageReport(){
+        return  ResponseEntity.ok(usageHistoryService.UsageReport());
     }
 }

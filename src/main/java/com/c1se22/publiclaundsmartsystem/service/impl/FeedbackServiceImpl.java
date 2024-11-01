@@ -4,7 +4,7 @@ import com.c1se22.publiclaundsmartsystem.entity.Feedback;
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.entity.User;
 import com.c1se22.publiclaundsmartsystem.payload.FeedbackDto;
-import com.c1se22.publiclaundsmartsystem.repository.FeedbackRespository;
+import com.c1se22.publiclaundsmartsystem.repository.FeedbackRepository;
 import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.service.FeedbackService;
@@ -18,23 +18,23 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class FeedbackServiceImpl implements FeedbackService {
-    FeedbackRespository feedbackRespository;
+    FeedbackRepository feedbackRepository;
     UserRepository userRepository;
     MachineRepository machineRepository;
 
     @Override
     public List<FeedbackDto> getAllFeedbacks() {
-        return feedbackRespository.findAll().stream().map(this::mapToFeedbackDto).collect(Collectors.toList());
+        return feedbackRepository.findAll().stream().map(this::mapToFeedbackDto).collect(Collectors.toList());
     }
 
     @Override
     public List<FeedbackDto> getFeedbackByIdMachine(Integer machineId) {
-        return feedbackRespository.findFeedbackByMachineId(machineId).stream().map(this::mapToFeedbackDto).collect(Collectors.toList());
+        return feedbackRepository.findFeedbackByMachineId(machineId).stream().map(this::mapToFeedbackDto).collect(Collectors.toList());
     }
 
     @Override
     public FeedbackDto getFeedbackById(Integer id) {
-        Feedback feedback = feedbackRespository.findById(id).orElseThrow(
+        Feedback feedback = feedbackRepository.findById(id).orElseThrow(
                 ()-> new ResourceNotFoundException("Feedback", "id", id)
         );
         return mapToFeedbackDto(feedback);
@@ -52,12 +52,12 @@ public class FeedbackServiceImpl implements FeedbackService {
                 .orElseThrow(() -> new ResourceNotFoundException("Machine", "id", feedbackDto.getMachineId()));
         feedback.setUser(user);
         feedback.setMachine(machine);
-        return mapToFeedbackDto(feedbackRespository.save(feedback));
+        return mapToFeedbackDto(feedbackRepository.save(feedback));
     }
 
     @Override
     public FeedbackDto updateFeedback(Integer id, FeedbackDto feedbackDto) {
-        Feedback feedback = feedbackRespository.findById(id).orElseThrow(
+        Feedback feedback = feedbackRepository.findById(id).orElseThrow(
                 ()-> new ResourceNotFoundException("Feedback", "id", id)
         );
         feedback.setComment(feedbackDto.getComment());
@@ -70,14 +70,14 @@ public class FeedbackServiceImpl implements FeedbackService {
                 .orElseThrow(() -> new ResourceNotFoundException("Machine", "id", feedbackDto.getMachineId()));
         feedback.setUser(user);
         feedback.setMachine(machine);
-        return mapToFeedbackDto(feedbackRespository.save(feedback));
+        return mapToFeedbackDto(feedbackRepository.save(feedback));
     }
 
     @Override
     public void deleteFeedback(Integer id) {
-        Feedback feedback = feedbackRespository.findById(id).orElseThrow(
+        Feedback feedback = feedbackRepository.findById(id).orElseThrow(
                 ()-> new ResourceNotFoundException("Feedback", "id", id));
-        feedbackRespository.delete(feedback);
+        feedbackRepository.delete(feedback);
     }
 
     private FeedbackDto mapToFeedbackDto(Feedback feedback){

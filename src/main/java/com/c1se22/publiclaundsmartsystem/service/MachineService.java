@@ -2,6 +2,7 @@ package com.c1se22.publiclaundsmartsystem.service;
 
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
+import com.c1se22.publiclaundsmartsystem.payload.MachineInUseDto;
 
 import java.awt.print.Pageable;
 import java.util.List;

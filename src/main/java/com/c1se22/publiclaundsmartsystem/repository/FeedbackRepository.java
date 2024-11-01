@@ -7,6 +7,6 @@ import java.util.List;
 
 
 @Repository
-public interface FeedbackRespository extends JpaRepository<Feedback, Integer> {
+public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
         List<Feedback> findFeedbackByMachineId(Integer machineId);
 }

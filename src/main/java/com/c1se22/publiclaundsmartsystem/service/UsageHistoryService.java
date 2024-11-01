@@ -1,6 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.service;
 
 import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
+import com.c1se22.publiclaundsmartsystem.payload.UsageReportDto;
 import com.c1se22.publiclaundsmartsystem.payload.UserUsageDto;
 
 import java.math.BigDecimal;
@@ -21,4 +22,5 @@ public interface UsageHistoryService {
     Map<String, Long> getUserUsageCount(LocalDateTime start, LocalDateTime end);
     BigDecimal getTotalRevenue(LocalDateTime start, LocalDateTime end);
     long getTotalUsageCount(LocalDateTime start, LocalDateTime end);
+    List<UsageReportDto> UsageReport();
 }

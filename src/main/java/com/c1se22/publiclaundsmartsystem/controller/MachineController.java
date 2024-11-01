@@ -1,10 +1,9 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
 import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
+import com.c1se22.publiclaundsmartsystem.payload.MachineInUseDto;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
-import com.c1se22.publiclaundsmartsystem.service.impl.MachineServiceImpl;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +16,7 @@ import static com.c1se22.publiclaundsmartsystem.util.AppConstants.*;
 @AllArgsConstructor
 public class MachineController {
     MachineService machineService;
+
 
 //    @GetMapping
 //    public ResponseEntity<List<MachineDto>> getAllMachines() {

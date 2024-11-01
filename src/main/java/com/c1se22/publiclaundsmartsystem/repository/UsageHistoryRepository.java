@@ -1,6 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.repository;
 
 import com.c1se22.publiclaundsmartsystem.entity.UsageHistory;
+import com.c1se22.publiclaundsmartsystem.payload.UsageReportDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,4 +27,10 @@ public interface UsageHistoryRepository extends JpaRepository<UsageHistory, Inte
     BigDecimal sumCostByStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
     @Query("SELECT COUNT(u) FROM UsageHistory u WHERE u.startTime BETWEEN :start AND :end")
     Long countByStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    @Query("SELECT uh FROM UsageHistory uh " +
+            "JOIN uh.user u " +
+            "JOIN uh.machine m " +
+            "JOIN uh.washingType t " +
+            "JOIN m.location l")
+    List<UsageHistory> UsageReport();
 }

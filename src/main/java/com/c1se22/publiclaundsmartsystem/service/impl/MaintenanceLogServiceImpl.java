@@ -5,7 +5,7 @@ import com.c1se22.publiclaundsmartsystem.entity.MaintenanceLog;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
 import com.c1se22.publiclaundsmartsystem.payload.MaintenanceLogsDto;
 import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
-import com.c1se22.publiclaundsmartsystem.repository.MaintenanceLogRespository;
+import com.c1se22.publiclaundsmartsystem.repository.MaintenanceLogRepository;
 import com.c1se22.publiclaundsmartsystem.service.MaintenanceLogService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,22 +16,22 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class MaintenanceLogServiceImpl implements MaintenanceLogService {
-    MaintenanceLogRespository maintenanceLogRespository;
+    MaintenanceLogRepository maintenanceLogRepository;
     MachineRepository machineRepository;
 
     @Override
     public List<MaintenanceLogsDto> getAllMaintenance() {
-        return maintenanceLogRespository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
+        return maintenanceLogRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
     public List<MaintenanceLogsDto> getAllMaintenanceByMachineId(Integer machineId) {
-        return maintenanceLogRespository.findAllMaintenanceByMachineId(machineId).stream().map(this::mapToDto).collect(Collectors.toList());
+        return maintenanceLogRepository.findAllMaintenanceByMachineId(machineId).stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
     public MaintenanceLogsDto getMaintenanceById(Integer id) {
-        MaintenanceLog maintenanceLog = maintenanceLogRespository.findById(id).orElseThrow(
+        MaintenanceLog maintenanceLog = maintenanceLogRepository.findById(id).orElseThrow(
                 ()-> new ResourceNotFoundException("MaintenanceLog", "id", id)
         );
         return mapToDto(maintenanceLog);
@@ -51,12 +51,12 @@ public class MaintenanceLogServiceImpl implements MaintenanceLogService {
                 .orElseThrow(() -> new ResourceNotFoundException("Machine", "id", maintenanceLogsDto.getMachineId()));
         maintenanceLog.setMachine(machine);
 
-        return mapToDto(maintenanceLogRespository.save(maintenanceLog));
+        return mapToDto(maintenanceLogRepository.save(maintenanceLog));
     }
 
     @Override
     public MaintenanceLogsDto updateMaintenance(Integer id, MaintenanceLogsDto maintenanceLogsDto) {
-        MaintenanceLog maintenanceLog = maintenanceLogRespository.findById(id).orElseThrow(
+        MaintenanceLog maintenanceLog = maintenanceLogRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("MaintenanceLog", "id", id)
         );
         maintenanceLog.setMaintenanceType(maintenanceLogsDto.getMaintenanceType());
@@ -69,15 +69,15 @@ public class MaintenanceLogServiceImpl implements MaintenanceLogService {
                 .orElseThrow(() -> new ResourceNotFoundException("Machine", "id", maintenanceLogsDto.getMachineId()));
         maintenanceLog.setMachine(machine);
 
-        return mapToDto(maintenanceLogRespository.save(maintenanceLog));
+        return mapToDto(maintenanceLogRepository.save(maintenanceLog));
     }
 
     @Override
     public void deleteMaintenance(Integer id) {
-        MaintenanceLog maintenanceLog = maintenanceLogRespository.findById(id).orElseThrow(
+        MaintenanceLog maintenanceLog = maintenanceLogRepository.findById(id).orElseThrow(
                 ()-> new ResourceNotFoundException("MaintenanceLog", "id", id)
         );
-        maintenanceLogRespository.delete(maintenanceLog);
+        maintenanceLogRepository.delete(maintenanceLog);
     }
 
     public MaintenanceLogsDto mapToDto(MaintenanceLog maintenanceLog){

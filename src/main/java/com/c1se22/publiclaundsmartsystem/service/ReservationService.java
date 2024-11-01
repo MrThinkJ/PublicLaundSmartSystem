@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.service;
 
+import com.c1se22.publiclaundsmartsystem.payload.MachineInUseDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationResponseDto;
 
@@ -22,4 +23,5 @@ public interface ReservationService {
     int getTotalReservationsForPeriodByMachineId(LocalDateTime start, LocalDateTime end, Integer machineId);
     int getTotalReservationsForPeriodByUserId(LocalDateTime start, LocalDateTime end, Integer userId);
     int getTotalReservationsForPeriodByWashingTypeId(LocalDateTime start, LocalDateTime end, Integer washingTypeId);
+    List<MachineInUseDto> findMachineInUse();
 }
