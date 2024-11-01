@@ -199,7 +199,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
                 .cots(usageHistory.getCost())
                 .startTime(usageHistory.getStartTime())
                 .endTime(usageHistory.getEndTime())
-                .typeWash(String.valueOf(usageHistory.getWashingType()))
+                .typeWash(String.valueOf(usageHistory.getWashingType().getTypeName()))
                 .build();
     }
 }
