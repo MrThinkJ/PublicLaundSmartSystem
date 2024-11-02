@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/usage-history")
+@RequestMapping("/api/usage-histories")
 @AllArgsConstructor
 public class UsageHistoryController {
     UsageHistoryService usageHistoryService;
@@ -27,15 +27,10 @@ public class UsageHistoryController {
         return ResponseEntity.ok(usageHistoryService.getUsageHistoryById(id));
     }
 
-    @PatchMapping("/{id}/complete")
-    public ResponseEntity<Boolean> completeUsageHistory(@PathVariable Integer id) {
-        usageHistoryService.completeUsageHistory(id);
-        return ResponseEntity.ok(true);
-    }
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> deleteUsageHistory(@PathVariable Integer id) {
-//        usageHistoryService.deleteUsageHistory(id);
-//        return ResponseEntity.noContent().build();
+//    @PatchMapping("/{id}/complete")
+//    public ResponseEntity<Boolean> completeUsageHistory(@PathVariable Integer id) {
+//        usageHistoryService.completeUsageHistory(id);
+//        return ResponseEntity.ok(true);
 //    }
 
     @GetMapping("/between")

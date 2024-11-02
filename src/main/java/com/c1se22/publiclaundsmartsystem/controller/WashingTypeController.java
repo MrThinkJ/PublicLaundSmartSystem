@@ -2,6 +2,7 @@ package com.c1se22.publiclaundsmartsystem.controller;
 
 import com.c1se22.publiclaundsmartsystem.entity.WashingType;
 import com.c1se22.publiclaundsmartsystem.service.WashingTypeService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,13 +20,13 @@ public class WashingTypeController {
     }
 
     @PostMapping
-    public ResponseEntity<WashingType> addWashingType(@RequestBody WashingType washingType){
+    public ResponseEntity<WashingType> addWashingType(@RequestBody @Valid WashingType washingType){
         return ResponseEntity.ok(washingTypeService.addWashingType(washingType));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<WashingType> updateWashingType(@PathVariable Integer id,
-                                                         @RequestBody WashingType washingType){
+                                                         @RequestBody @Valid WashingType washingType){
         return ResponseEntity.ok(washingTypeService.updateWashingType(id, washingType));
     }
 

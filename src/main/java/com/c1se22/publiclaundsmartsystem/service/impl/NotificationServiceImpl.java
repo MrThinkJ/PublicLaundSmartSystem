@@ -7,7 +7,10 @@ import com.c1se22.publiclaundsmartsystem.payload.NotificationDto;
 import com.c1se22.publiclaundsmartsystem.repository.NotificationRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.service.NotificationService;
-import com.google.firebase.database.FirebaseDatabase;
+import com.c1se22.publiclaundsmartsystem.service.UserDeviceService;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.Message;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +23,8 @@ import java.util.stream.Collectors;
 public class NotificationServiceImpl implements NotificationService {
     NotificationRepository notificationRepository;
     UserRepository userRepository;
-    FirebaseDatabase firebaseDatabase;
+    UserDeviceService userDeviceService;
+    FirebaseMessaging firebaseMessaging;
 
     @Override
     public NotificationDto getNotification(Integer id) {
@@ -55,7 +59,25 @@ public class NotificationServiceImpl implements NotificationService {
                 .message(message)
                 .build();
         notificationRepository.save(notification);
-
+        List<String> deviceTokens = userDeviceService.getActiveUserToken(toUserId);
+        deviceTokens.forEach(token ->{
+            try{
+                Message firebaseMessage = Message.builder()
+                        .setToken(token)
+                        .setNotification(
+                                com.google.firebase.messaging.Notification.builder()
+                                        .setTitle("System Notification")
+                                        .setBody(message)
+                                        .build()
+                        )
+                        .build();
+                firebaseMessaging.send(firebaseMessage);
+            } catch (FirebaseMessagingException e){
+                if (e.getErrorCode().toString().equals("messaging/invalid-registration-token")) {
+                    userDeviceService.deactivateDevice(token);
+                }
+            }
+        });
     }
 
     private NotificationDto mapToDTO(Notification notification) {

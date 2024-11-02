@@ -3,6 +3,7 @@ package com.c1se22.publiclaundsmartsystem.controller;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationResponseDto;
 import com.c1se22.publiclaundsmartsystem.service.ReservationService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,7 +42,7 @@ public class ReservationController {
     }
 
     @PostMapping
-    public ResponseEntity<ReservationResponseDto> createReservation(@RequestBody ReservationDto reservationDto){
+    public ResponseEntity<ReservationResponseDto> createReservation(@RequestBody @Valid ReservationDto reservationDto){
         return ResponseEntity.ok(reservationService.createReservation(reservationDto));
     }
 

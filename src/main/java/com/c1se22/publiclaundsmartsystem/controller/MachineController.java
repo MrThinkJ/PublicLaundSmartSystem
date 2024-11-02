@@ -3,6 +3,7 @@ package com.c1se22.publiclaundsmartsystem.controller;
 import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
 import com.c1se22.publiclaundsmartsystem.service.impl.MachineServiceImpl;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.ResponseEntity;
@@ -32,12 +33,12 @@ public class MachineController {
     }
 
     @PostMapping
-    public ResponseEntity<MachineDto> addMachine(@RequestBody MachineDto machineDto) {
+    public ResponseEntity<MachineDto> addMachine(@RequestBody @Valid MachineDto machineDto) {
         return ResponseEntity.ok(machineService.addMachine(machineDto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MachineDto> updateMachine(@PathVariable Integer id, @RequestBody MachineDto machineDto) {
+    public ResponseEntity<MachineDto> updateMachine(@PathVariable Integer id, @RequestBody @Valid MachineDto machineDto) {
         return ResponseEntity.ok(machineService.updateMachine(id, machineDto));
     }
 

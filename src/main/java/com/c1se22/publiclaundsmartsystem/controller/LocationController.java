@@ -3,6 +3,7 @@ package com.c1se22.publiclaundsmartsystem.controller;
 import com.c1se22.publiclaundsmartsystem.payload.LocationDetailsDto;
 import com.c1se22.publiclaundsmartsystem.payload.LocationSummaryDto;
 import com.c1se22.publiclaundsmartsystem.service.LocationService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,13 +25,13 @@ public class LocationController {
     }
 
     @PostMapping
-    public ResponseEntity<LocationSummaryDto> addLocation(@RequestBody LocationSummaryDto locationSummaryDto){
+    public ResponseEntity<LocationSummaryDto> addLocation(@RequestBody @Valid LocationSummaryDto locationSummaryDto){
         return ResponseEntity.ok(locationService.addLocation(locationSummaryDto));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<LocationSummaryDto> updateLocation(@PathVariable Integer id,
-                                                             @RequestBody LocationSummaryDto locationSummaryDto){
+                                                             @RequestBody @Valid LocationSummaryDto locationSummaryDto){
         return ResponseEntity.ok(locationService.updateLocation(id, locationSummaryDto));
     }
 

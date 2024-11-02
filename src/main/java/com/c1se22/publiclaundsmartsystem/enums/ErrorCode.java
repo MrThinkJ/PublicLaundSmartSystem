@@ -21,8 +21,8 @@ public enum ErrorCode {
     PAYMENT_PROCESSING_ERROR(1201, "Payment processing failed: %s"),
 
     // Application errors (1300-1399)
-    USER_ALREADY_HAS_PENDING_RESERVATION(1004, "User %s already has a pending reservation."),
-    MACHINE_NOT_AVAILABLE(1005, "Machine %s is not available."),
+    USER_ALREADY_HAS_PENDING_RESERVATION(1300, "User %s already has a pending reservation."),
+    MACHINE_NOT_AVAILABLE(1301, "Machine %s is not available."),
 
     // Validation errors (2000-2999)
     FIELD_REQUIRED(2000, "Field is required"),
@@ -39,11 +39,11 @@ public enum ErrorCode {
     FIELD_INVALID(2203, "Invalid %s format"),
 
     // API errors
-    INVALID_JWT(2000, "Invalid JWT token"),
-    EXPIRED_JWT(2001, "Expired JWT token"),
-    INVALID_REFRESH_TOKEN(2002, "Invalid refresh token"),
-    UNSUPPORTED_JWT(2003, "Unsupported JWT token"),
-    INVALID_JWT_CLAIMS(2004, "JWT claim error"),
+    INVALID_JWT(2300, "Invalid JWT token"),
+    EXPIRED_JWT(2301, "Expired JWT token"),
+    INVALID_REFRESH_TOKEN(2302, "Invalid refresh token"),
+    UNSUPPORTED_JWT(2303, "Unsupported JWT token"),
+    INVALID_JWT_CLAIMS(2304, "JWT claim error"),
 
     // System errors (5000-5999)
     INTERNAL_ERROR(5000, "Internal server error"),

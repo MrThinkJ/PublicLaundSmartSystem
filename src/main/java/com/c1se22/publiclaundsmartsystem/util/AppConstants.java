@@ -7,6 +7,8 @@ public class AppConstants {
     public static final String DEFAULT_PAGE_SIZE = "10";
     public static final String DEFAULT_SORT_BY = "id";
     public static final String DEFAULT_SORT_DIR = "asc";
+    public static final Integer TIME_TO_CANCEL_RESERVATION = 15;
+    public static final Integer TIME_TO_NOTIFY_USER = 5;
 
     @Getter
     public enum MachineStatus {

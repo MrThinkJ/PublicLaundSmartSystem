@@ -6,6 +6,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ReservationCreatedEvent {
+public class ReservationCreatedEvent implements AppEvent {
     private Reservation reservation;
 }
