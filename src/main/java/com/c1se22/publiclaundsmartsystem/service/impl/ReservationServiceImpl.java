@@ -14,11 +14,11 @@ import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.repository.ReservationRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.repository.WashingTypeRepository;
+import com.c1se22.publiclaundsmartsystem.service.EventService;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
 import com.c1se22.publiclaundsmartsystem.service.ReservationService;
 import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
 import lombok.AllArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +36,7 @@ public class ReservationServiceImpl implements ReservationService {
     WashingTypeRepository washingTypeRepository;
     MachineService machineService;
     UsageHistoryService usageHistoryService;
-    ApplicationEventPublisher publisher;
+    EventService eventService;
 
     @Override
     public List<ReservationResponseDto> getAllReservations() {
@@ -111,7 +111,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .washingType(washingType)
                 .build();
         machineService.updateMachineStatus(machine.getId(), "RESERVED");
-        publisher.publishEvent(new ReservationCreatedEvent(reservation));
+        eventService.publishEvent(new ReservationCreatedEvent(reservation));
         return mapToResponseDto(reservationRepository.save(reservation));
     }
 
@@ -152,6 +152,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .washingTypeId(savedReservation.getWashingType().getId())
                 .cost(savedReservation.getWashingType().getDefaultPrice())
                 .build();
+
         usageHistoryService.createUsageHistory(usageHistoryDTO);
 
         User user = savedReservation.getUser();
@@ -159,6 +160,7 @@ public class ReservationServiceImpl implements ReservationService {
         userRepository.save(user);
         Machine machine = savedReservation.getMachine();
         machineService.updateMachineStatus(machine.getId(), "IN_USE");
+
         return mapToResponseDto(savedReservation);
     }
 

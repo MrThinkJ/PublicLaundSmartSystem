@@ -5,6 +5,7 @@ import com.c1se22.publiclaundsmartsystem.entity.UsageHistory;
 import com.c1se22.publiclaundsmartsystem.entity.User;
 import com.c1se22.publiclaundsmartsystem.entity.WashingType;
 import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
+import com.c1se22.publiclaundsmartsystem.event.WashingNearCompleteEvent;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
 import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
 import com.c1se22.publiclaundsmartsystem.payload.UserUsageDto;
@@ -12,6 +13,7 @@ import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UsageHistoryRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.repository.WashingTypeRepository;
+import com.c1se22.publiclaundsmartsystem.service.EventService;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
 import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
 import lombok.AllArgsConstructor;
@@ -34,6 +36,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
     WashingTypeRepository washingTypeRepository;
     UserRepository userRepository;
     MachineService machineService;
+    EventService eventService;
     @Override
     public List<UsageHistoryDto> getAllUsageHistories() {
         return usageHistoryRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
@@ -61,7 +64,6 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
                 () -> new ResourceNotFoundException("WashingType", "id", usageHistoryDto.getWashingTypeId().toString())
         );
         usageHistory.setEndTime(LocalDateTime.now().plusMinutes(washingType.getDefaultDuration()));
-
         User user = userRepository.findById(usageHistoryDto.getUserId()).orElseThrow(
                 () -> new ResourceNotFoundException("User", "id", usageHistoryDto.getUserId().toString())
         );
@@ -70,7 +72,8 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         usageHistory.setWashingType(washingType);
         usageHistory.setUser(user);
         UsageHistory newUsageHistory = usageHistoryRepository.save(usageHistory);
-        mapToDto(newUsageHistory);
+
+        eventService.publishEvent(new WashingNearCompleteEvent(newUsageHistory, washingType.getDefaultDuration()));
     }
 
     @Override

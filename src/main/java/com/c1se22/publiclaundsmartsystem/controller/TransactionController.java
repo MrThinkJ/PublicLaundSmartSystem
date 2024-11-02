@@ -3,6 +3,7 @@ package com.c1se22.publiclaundsmartsystem.controller;
 import com.c1se22.publiclaundsmartsystem.enums.TransactionStatus;
 import com.c1se22.publiclaundsmartsystem.payload.TransactionDto;
 import com.c1se22.publiclaundsmartsystem.service.TransactionService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,7 @@ public class TransactionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TransactionDto> updateTransaction(@PathVariable Integer id, @RequestBody TransactionDto transactionDto) {
+    public ResponseEntity<TransactionDto> updateTransaction(@PathVariable Integer id, @RequestBody @Valid TransactionDto transactionDto) {
         return ResponseEntity.ok(transactionService.updateTransaction(id, transactionDto));
     }
 
