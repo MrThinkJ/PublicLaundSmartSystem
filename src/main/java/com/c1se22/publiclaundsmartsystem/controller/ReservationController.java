@@ -6,6 +6,8 @@ import com.c1se22.publiclaundsmartsystem.service.ReservationService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -37,7 +39,7 @@ public class ReservationController {
     }
 
     @GetMapping("/pending/users/{id}")
-    public ResponseEntity<Integer> getPendingReservationByUserId(@PathVariable Integer id){
+    public ResponseEntity<ReservationResponseDto> getPendingReservationByUserId(@PathVariable Integer id){
         return ResponseEntity.ok(reservationService.getPendingReservationByUserId(id));
     }
 
@@ -52,9 +54,10 @@ public class ReservationController {
 //        return ResponseEntity.ok("Reservation deleted");
 //    }
 
-    @PutMapping("/{id}/complete")
-    public ResponseEntity<ReservationResponseDto> completeReservation(@PathVariable Integer id){
-        return ResponseEntity.ok(reservationService.completeReservation(id));
+    @PutMapping("/complete")
+    public ResponseEntity<ReservationResponseDto> completeReservation(Authentication authentication){
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(reservationService.completeReservation(userDetails.getUsername()));
     }
 
     @PutMapping("/{id}/cancel")

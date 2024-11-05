@@ -137,9 +137,12 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public ReservationResponseDto completeReservation(Integer reservationId) {
-        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
-                () -> new ResourceNotFoundException("Reservation", "reservationId", reservationId.toString())
+    public ReservationResponseDto completeReservation(String username) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
+                () -> new ResourceNotFoundException("User", "username", username)
+        );
+        Reservation reservation = reservationRepository.getPendingReservationByUserId(user.getId()).orElseThrow(
+                () -> new APIException(HttpStatus.NOT_FOUND, ErrorCode.NO_PENDING_RESERVATION, user.getId())
         );
         reservation.setStatus(ReservationStatus.COMPLETED);
         reservation.setUpdatedAt(LocalDateTime.now());
@@ -154,19 +157,19 @@ public class ReservationServiceImpl implements ReservationService {
                 .build();
 
         usageHistoryService.createUsageHistory(usageHistoryDTO);
-
-        User user = savedReservation.getUser();
         user.setBalance(user.getBalance().subtract(savedReservation.getWashingType().getDefaultPrice()));
         userRepository.save(user);
         Machine machine = savedReservation.getMachine();
         machineService.updateMachineStatus(machine.getId(), "IN_USE");
-
         return mapToResponseDto(savedReservation);
     }
 
     @Override
-    public Integer getPendingReservationByUserId(Integer userId) {
-        return reservationRepository.getPendingReservationByUserId(userId).orElse(null);
+    public ReservationResponseDto getPendingReservationByUserId(Integer userId) {
+        Reservation reservation = reservationRepository.getPendingReservationByUserId(userId).orElseThrow(
+                () -> new APIException(HttpStatus.NOT_FOUND, ErrorCode.NO_PENDING_RESERVATION, userId)
+        );
+        return mapToResponseDto(reservation);
     }
 
     @Override

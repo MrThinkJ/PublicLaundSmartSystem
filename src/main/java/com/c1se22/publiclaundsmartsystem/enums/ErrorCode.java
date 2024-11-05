@@ -22,7 +22,12 @@ public enum ErrorCode {
 
     // Application errors (1300-1399)
     USER_ALREADY_HAS_PENDING_RESERVATION(1300, "User %s already has a pending reservation."),
+    NO_PENDING_RESERVATION(1301, "No pending reservation found for user %s."),
     MACHINE_NOT_AVAILABLE(1301, "Machine %s is not available."),
+    EXISTING_USERNAME_OR_EMAIL(1301, "Username or email already exists."),
+    EXISTING_USERNAME(1302, "Username %s already exists."),
+    EXISTING_EMAIL(1303, "Email %s already exists."),
+    EXISTING_PHONE(1304, "Phone %s already exists."),
 
     // Validation errors (2000-2999)
     FIELD_REQUIRED(2000, "Field is required"),

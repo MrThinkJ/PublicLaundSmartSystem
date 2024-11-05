@@ -17,6 +17,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
     List<Reservation> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
     @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Reservation r WHERE r.user.id = :userId AND r.status = 'PENDING'")
     boolean findCurrentPendingReservationByUser(@Param("userId") Integer userId);
-    @Query("SELECT r.id FROM Reservation r WHERE r.user.id = :userId AND r.status = 'PENDING'")
-    Optional<Integer> getPendingReservationByUserId(@Param("userId") Integer userId);
+    @Query("SELECT r FROM Reservation r WHERE r.user.id = :userId AND r.status = 'PENDING'")
+    Optional<Reservation> getPendingReservationByUserId(@Param("userId") Integer userId);
 }

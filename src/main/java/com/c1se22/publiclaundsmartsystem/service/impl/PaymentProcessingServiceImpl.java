@@ -10,6 +10,7 @@ import com.c1se22.publiclaundsmartsystem.payload.CreatePaymentLinkRequestBody;
 import com.c1se22.publiclaundsmartsystem.payload.PaymentLinkDto;
 import com.c1se22.publiclaundsmartsystem.payload.PayosTransactionDto;
 import com.c1se22.publiclaundsmartsystem.repository.*;
+import com.c1se22.publiclaundsmartsystem.service.NotificationService;
 import com.c1se22.publiclaundsmartsystem.service.PaymentProcessingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -29,6 +30,7 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
     PayOS payOS;
     TransactionRepository transactionRepository;
     UserRepository userRepository;
+    NotificationService notificationService;
     @Override
     public CheckoutResponseDto createPaymentLink(CreatePaymentLinkRequestBody requestBody) {
         User user = userRepository.findById(requestBody.getUserId()).orElseThrow(() ->
@@ -89,6 +91,8 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
             Transaction transaction = transactionRepository.findByPaymentId(data.getId());
             transaction.setStatus(TransactionStatus.CANCELLED);
             transactionRepository.save(transaction);
+            notificationService.sendNotification(transaction.getUser().getId(),
+                    "Your payment has been cancelled.");
             return mapToPaymentLinkDto(data);
         } catch (Exception e) {
             throw new PaymentProcessingException("Failed to get payment link data. Error: "+e.getMessage());
@@ -128,6 +132,12 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                 User user = transaction.getUser();
                 user.setBalance(user.getBalance().add(BigDecimal.valueOf(data.getAmount())));
                 userRepository.save(user);
+            } else{
+                Transaction transaction = transactionRepository.findByPaymentId(data.getPaymentLinkId());
+                transaction.setStatus(TransactionStatus.FAILED);
+                transactionRepository.save(transaction);
+                notificationService.sendNotification(transaction.getUser().getId(),
+                        "Your payment has failed. Please try again.");
             }
         } catch (Exception e){
             throw new PaymentProcessingException("Failed to handle payos transfer. Error: "+e.getMessage());

@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
+import com.c1se22.publiclaundsmartsystem.payload.MachineAndTimeDto;
 import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
 import com.c1se22.publiclaundsmartsystem.service.impl.MachineServiceImpl;
@@ -54,7 +55,7 @@ public class MachineController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<MachineDto>> getMachinesAreBeingUsedByUser(@PathVariable Integer userId) {
+    public ResponseEntity<List<MachineAndTimeDto>> getMachinesAreBeingUsedByUser(@PathVariable Integer userId) {
         return ResponseEntity.ok(machineService.getMachinesAreBeingUsedByUser(userId));
     }
 

@@ -10,7 +10,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-//import org.springframework.security.core.Authentication;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -23,17 +23,17 @@ public class JwtProvider {
     @Value("${app.jwt-expiration-milliseconds}")
     private long expiration;
 
-//    public String generateToken(Authentication authentication){
-//        String username = authentication.getName();
-//        Date currentDate = new Date();
-//        Date expirationDate = new Date(currentDate.getTime()+expiration);
-//        return Jwts.builder()
-//                .setSubject(username)
-//                .setIssuedAt(currentDate)
-//                .setExpiration(expirationDate)
-//                .signWith(key())
-//                .compact();
-//    }
+    public String generateToken(Authentication authentication){
+        String username = authentication.getName();
+        Date currentDate = new Date();
+        Date expirationDate = new Date(currentDate.getTime()+expiration);
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(currentDate)
+                .setExpiration(expirationDate)
+                .signWith(key())
+                .compact();
+    }
 
     private Key key(){
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
