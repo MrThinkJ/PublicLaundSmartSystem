@@ -3,6 +3,7 @@ package com.c1se22.publiclaundsmartsystem.service.impl;
 import com.c1se22.publiclaundsmartsystem.entity.Role;
 import com.c1se22.publiclaundsmartsystem.entity.User;
 import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
+import com.c1se22.publiclaundsmartsystem.enums.RoleEnum;
 import com.c1se22.publiclaundsmartsystem.exception.APIException;
 import com.c1se22.publiclaundsmartsystem.payload.LoginDto;
 import com.c1se22.publiclaundsmartsystem.payload.LoginResponse;
@@ -38,7 +39,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse login(LoginDto loginDto) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDto.getPhoneNumberOrEmail(), loginDto.getPassword())
+                new UsernamePasswordAuthenticationToken(loginDto.getUsernameOrEmail(), loginDto.getPassword())
         );
         String token = jwtProvider.generateToken(authentication);
         String username = authentication.getName();
@@ -70,7 +71,7 @@ public class AuthServiceImpl implements AuthService {
                 .createdAt(LocalDate.now())
                 .lastLoginAt(LocalDateTime.now())
                 .build();
-        Set<Role> roles = Set.of(roleRepository.findByName("ROLE_USER"));
+        Set<Role> roles = Set.of(roleRepository.findByName(RoleEnum.ROLE_ADMIN.name()));
         user.setRoles(roles);
         userRepository.save(user);
         return true;
