@@ -64,6 +64,7 @@ public class AuthServiceImpl implements AuthService {
                 .username(registerDto.getUsername())
                 .email(registerDto.getEmail())
                 .phone(registerDto.getPhone())
+                .fullname(registerDto.getFullname())
                 .password(passwordEncoder.encode(registerDto.getPassword()))
                 .balance(BigDecimal.valueOf(0))
                 .createdAt(LocalDate.now())
