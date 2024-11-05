@@ -1,13 +1,18 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
+import com.c1se22.publiclaundsmartsystem.entity.UsageHistory;
+import com.c1se22.publiclaundsmartsystem.entity.User;
 import com.c1se22.publiclaundsmartsystem.payload.FirebaseMachine;
 import com.c1se22.publiclaundsmartsystem.entity.Location;
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
+import com.c1se22.publiclaundsmartsystem.payload.MachineAndTimeDto;
 import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
 import com.c1se22.publiclaundsmartsystem.repository.LocationRepository;
 import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
+import com.c1se22.publiclaundsmartsystem.repository.UsageHistoryRepository;
+import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
 import com.google.firebase.database.FirebaseDatabase;
 import lombok.AllArgsConstructor;
@@ -26,6 +31,8 @@ import java.util.stream.Collectors;
 public class MachineServiceImpl implements MachineService{
     MachineRepository machineRepository;
     LocationRepository locationRepository;
+    UsageHistoryRepository usageHistoryRepository;
+    UserRepository userRepository;
     FirebaseDatabase firebaseDatabase;
 
     @Override
@@ -127,8 +134,13 @@ public class MachineServiceImpl implements MachineService{
     }
 
     @Override
-    public List<MachineDto> getMachinesAreBeingUsedByUser(Integer userId) {
-        return machineRepository.findMachinesAreBeingUsedByUser(userId).stream().map(this::mapToDto).collect(Collectors.toList());
+    public List<MachineAndTimeDto> getMachinesAreBeingUsedByUser(Integer userId) {
+        User user = userRepository.findById(userId).orElseThrow(() ->
+                new ResourceNotFoundException("User", "id", userId.toString()));
+        List<Machine> machines = machineRepository.findMachinesAreBeingUsedByUser(user.getId());
+        List<Integer> machineIds = machines.stream().map(Machine::getId).toList();
+        List<UsageHistory> usageHistories = usageHistoryRepository.findByCurrentUsedMachineIdsAndUserId(machineIds, user.getId());
+        return usageHistories.stream().map(usageHistory -> mapToMachineAndTimeDto(usageHistory.getMachine(), usageHistory)).collect(Collectors.toList());
     }
 
     private MachineDto mapToDto(Machine machine) {
@@ -150,5 +162,28 @@ public class MachineServiceImpl implements MachineService{
             machineDto.setLocationLat(machine.getLocation().getLat());
         }
         return machineDto;
+    }
+
+    private MachineAndTimeDto mapToMachineAndTimeDto(Machine machine, UsageHistory usageHistory) {
+        MachineAndTimeDto machineAndTimeDto = MachineAndTimeDto.builder()
+                .id(machine.getId())
+                .name(machine.getName())
+                .model(machine.getModel())
+                .capacity(machine.getCapacity())
+                .status(String.valueOf(machine.getStatus()))
+                .startTime(usageHistory.getStartTime())
+                .endTime(usageHistory.getEndTime())
+                .build();
+        if (machine.getLocation() != null) {
+            machineAndTimeDto.setLocationId(machine.getLocation().getId());
+            machineAndTimeDto.setLocationName(machine.getLocation().getName());
+            machineAndTimeDto.setLocationAddress(machine.getLocation().getAddress());
+            machineAndTimeDto.setLocationCity(machine.getLocation().getCity());
+            machineAndTimeDto.setLocationDistrict(machine.getLocation().getDistrict());
+            machineAndTimeDto.setLocationWard(machine.getLocation().getWard());
+            machineAndTimeDto.setLocationLng(machine.getLocation().getLng());
+            machineAndTimeDto.setLocationLat(machine.getLocation().getLat());
+        }
+        return machineAndTimeDto;
     }
 }

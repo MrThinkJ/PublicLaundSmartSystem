@@ -1,6 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.service;
 
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
+import com.c1se22.publiclaundsmartsystem.payload.MachineAndTimeDto;
 import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
 
 import java.awt.print.Pageable;
@@ -15,5 +16,5 @@ public interface MachineService {
     void deleteMachine(Integer id);
     MachineDto updateMachineStatus(Integer id, String status);
     MachineDto getMachineAreBeingReservedByUser(Integer userId);
-    List<MachineDto> getMachinesAreBeingUsedByUser(Integer userId);
+    List<MachineAndTimeDto> getMachinesAreBeingUsedByUser(Integer userId);
 }

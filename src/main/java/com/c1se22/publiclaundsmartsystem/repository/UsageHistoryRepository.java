@@ -18,7 +18,7 @@ public interface UsageHistoryRepository extends JpaRepository<UsageHistory, Inte
     List<Object[]> countByWashingTypeAndStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
     @Query("SELECT u.washingType.id, SUM(u.cost) FROM UsageHistory u WHERE u.startTime BETWEEN :start AND :end GROUP BY u.machine.id")
     List<Object[]> sumCostByWashingTypeAndStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
-    @Query(value = "SELECT u.user.id, COUNT(u) FROM UsageHistory u WHERE u.startTime BETWEEN :start AND :end GROUP BY u.user.id ORDER BY COUNT(u) DESC", nativeQuery = true)
+    @Query(value = "SELECT u.user.id, COUNT(u) FROM UsageHistory u WHERE u.startTime BETWEEN :start AND :end GROUP BY u.user.id ORDER BY COUNT(u) DESC")
     List<Object[]> findTopUsersByStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, Pageable pageable);
     @Query("SELECT u.user.id, COUNT(u) FROM UsageHistory u WHERE u.startTime BETWEEN :start AND :end GROUP BY u.user.id")
     List<Object[]> findUserUsageCountByStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
@@ -26,4 +26,6 @@ public interface UsageHistoryRepository extends JpaRepository<UsageHistory, Inte
     BigDecimal sumCostByStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
     @Query("SELECT COUNT(u) FROM UsageHistory u WHERE u.startTime BETWEEN :start AND :end")
     Long countByStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    @Query("SELECT u FROM UsageHistory u WHERE u.machine.id IN :machineIds AND u.user.id = :userId AND u.endTime IS NULL")
+    List<UsageHistory> findByCurrentUsedMachineIdsAndUserId(List<Integer> machineIds, Integer userId);
 }

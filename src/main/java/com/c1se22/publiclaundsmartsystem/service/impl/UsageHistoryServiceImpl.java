@@ -63,7 +63,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         WashingType washingType = washingTypeRepository.findById(usageHistoryDto.getWashingTypeId()).orElseThrow(   
                 () -> new ResourceNotFoundException("WashingType", "id", usageHistoryDto.getWashingTypeId().toString())
         );
-        usageHistory.setEndTime(LocalDateTime.now().plusMinutes(washingType.getDefaultDuration()));
+        usageHistory.setEndTime(null);
         User user = userRepository.findById(usageHistoryDto.getUserId()).orElseThrow(
                 () -> new ResourceNotFoundException("User", "id", usageHistoryDto.getUserId().toString())
         );

@@ -22,25 +22,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto getUserbyId(Integer id){
+    public UserDto getUserById(Integer id){
         User user = userRepository.findById(id).orElseThrow(()->
                 new ResourceNotFoundException("User", "id", id.toString()));
         return mapToUserDto(user);
     }
 
-    @Override
-    public UserDto addUser(UserDto userDto) {
-        User user = new User();
-        user.setUsername(userDto.getUsername());
-        user.setPassword(userDto.getPassword());
-        user.setFullname(userDto.getFullname());
-        user.setEmail(userDto.getEmail());
-        user.setPhone(userDto.getPhone());
-        user.setBalance(userDto.getBalance());
-        user.setCreatedAt(userDto.getCreatedAt());
-        user.setLastLoginAt(userDto.getLastLoginAt());
-        return mapToUserDto(userRepository.save(user));
-    }
+//    @Override
+//    public UserDto addUser(UserDto userDto) {
+//        User user = new User();
+//        user.setUsername(userDto.getUsername());
+//        user.setFullname(userDto.getFullname());
+//        user.setEmail(userDto.getEmail());
+//        user.setPhone(userDto.getPhone());
+//        user.setBalance(userDto.getBalance());
+//        user.setCreatedAt(userDto.getCreatedAt());
+//        user.setLastLoginAt(userDto.getLastLoginAt());
+//        return mapToUserDto(userRepository.save(user));
+//    }
 
     @Override
     public UserDto updateUser(Integer id, UserDto userDto) {
@@ -48,7 +47,6 @@ public class UserServiceImpl implements UserService {
                 ()-> new ResourceNotFoundException("User", "id", id.toString())
         );
         user.setUsername(userDto.getUsername());
-        user.setPassword(userDto.getPassword());
         user.setFullname(userDto.getFullname());
         user.setEmail(userDto.getEmail());
         user.setPhone(userDto.getPhone());
@@ -69,7 +67,6 @@ public class UserServiceImpl implements UserService {
         return UserDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
-                .password(user.getPassword())
                 .fullname(user.getFullname())
                 .email(user.getEmail())
                 .phone(user.getPhone())

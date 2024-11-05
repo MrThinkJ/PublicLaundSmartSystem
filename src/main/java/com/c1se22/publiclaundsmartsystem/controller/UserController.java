@@ -27,13 +27,13 @@ public class UserController {
 
     @GetMapping("/{id}")
     public  ResponseEntity<UserDto> getUserById(@PathVariable Integer id){
-        return ResponseEntity.ok(userService.getUserbyId(id));
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
-    @PostMapping
-    public ResponseEntity <UserDto> addUser(@RequestBody UserDto userDto){
-        return ResponseEntity.ok(userService.addUser(userDto));
-    }
+//    @PostMapping
+//    public ResponseEntity <UserDto> addUser(@RequestBody UserDto userDto){
+//        return ResponseEntity.ok(userService.addUser(userDto));
+//    }
 
     @PutMapping("/{id}")
     public ResponseEntity <UserDto> updateUser(@PathVariable Integer id, @RequestBody UserDto userDto){
