@@ -53,6 +53,12 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public List<TransactionDto> getTransactionsByUsername(String username) {
+        List<Transaction> transactions = transactionRepository.findByUserUsername(username);
+        return transactions.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    @Override
     public List<TransactionDto> getTransactionsByStatus(TransactionStatus status) {
         List<Transaction> transactions = transactionRepository.findByStatus(status);
         return transactions.stream().map(this::mapToDto).collect(Collectors.toList());

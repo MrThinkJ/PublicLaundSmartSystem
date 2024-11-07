@@ -38,7 +38,7 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable).cors(Customizer.withDefaults());
 
         httpSecurity.authorizeHttpRequests(authorize ->
-                        authorize.requestMatchers("/api/auth/**").permitAll()
+                        authorize.requestMatchers("/api/auth/**", "/api/password/**").permitAll()
                                 .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

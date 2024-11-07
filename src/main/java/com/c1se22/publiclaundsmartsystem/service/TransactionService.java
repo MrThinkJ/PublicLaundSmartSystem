@@ -11,5 +11,6 @@ public interface TransactionService {
   TransactionDto updateTransaction(Integer id, TransactionDto transactionDto);
   void deleteTransaction(Integer id);
   List<TransactionDto> getTransactionsByUserId(Integer userId);
+  List<TransactionDto> getTransactionsByUsername(String username);
   List<TransactionDto> getTransactionsByStatus(TransactionStatus status);
 }

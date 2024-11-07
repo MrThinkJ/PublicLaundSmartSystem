@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -54,13 +56,15 @@ public class MachineController {
         return ResponseEntity.ok(machineService.updateMachineStatus(id, status));
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<MachineAndTimeDto>> getMachinesAreBeingUsedByUser(@PathVariable Integer userId) {
-        return ResponseEntity.ok(machineService.getMachinesAreBeingUsedByUser(userId));
+    @GetMapping("/user")
+    public ResponseEntity<List<MachineAndTimeDto>> getMachinesAreBeingUsedByUser(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(machineService.getMachinesAreBeingUsedByUser(userDetails.getUsername()));
     }
 
-    @GetMapping("/user/{userId}/pending")
-    public ResponseEntity<MachineDto> getPendingMachinesByUser(@PathVariable Integer userId) {
-        return ResponseEntity.ok(machineService.getMachineAreBeingReservedByUser(userId));
+    @GetMapping("/user/pending")
+    public ResponseEntity<MachineDto> getPendingMachinesByUser(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(machineService.getMachineAreBeingReservedByUser(userDetails.getUsername()));
     }
 }

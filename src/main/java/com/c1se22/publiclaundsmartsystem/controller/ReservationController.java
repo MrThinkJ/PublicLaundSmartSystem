@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
+import com.c1se22.publiclaundsmartsystem.payload.ReservationCreateDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationResponseDto;
 import com.c1se22.publiclaundsmartsystem.service.ReservationService;
@@ -45,8 +46,10 @@ public class ReservationController {
     }
 
     @PostMapping
-    public ResponseEntity<ReservationResponseDto> createReservation(@RequestBody @Valid ReservationDto reservationDto){
-        return ResponseEntity.ok(reservationService.createReservation(reservationDto));
+    public ResponseEntity<ReservationResponseDto> createReservation(@RequestBody @Valid ReservationCreateDto reservationCreateDto,
+                                                                    Authentication authentication){
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(reservationService.createReservation(userDetails.getUsername(), reservationCreateDto));
     }
 
     @PutMapping("/complete")

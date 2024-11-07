@@ -6,6 +6,8 @@ import com.c1se22.publiclaundsmartsystem.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,6 +41,12 @@ public class TransactionController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<TransactionDto>> getTransactionsByUserId(@PathVariable Integer userId) {
         return ResponseEntity.ok(transactionService.getTransactionsByUserId(userId));
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<List<TransactionDto>> getTransactions(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(transactionService.getTransactionsByUsername(userDetails.getUsername()));
     }
 
     @GetMapping("/status/{status}")

@@ -8,6 +8,7 @@ import com.c1se22.publiclaundsmartsystem.exception.APIException;
 import com.c1se22.publiclaundsmartsystem.payload.LoginDto;
 import com.c1se22.publiclaundsmartsystem.payload.LoginResponse;
 import com.c1se22.publiclaundsmartsystem.payload.RegisterDto;
+import com.c1se22.publiclaundsmartsystem.payload.UserDto;
 import com.c1se22.publiclaundsmartsystem.repository.RoleRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.security.JwtProvider;
@@ -78,5 +79,21 @@ public class AuthServiceImpl implements AuthService {
         user.setRoles(roles);
         userRepository.save(user);
         return true;
+    }
+
+    @Override
+    public UserDto me(String username) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
+                ()-> new UsernameNotFoundException("User not found with phone username or email: "+username));
+        return UserDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .fullname(user.getFullname())
+                .balance(user.getBalance())
+                .createdAt(user.getCreatedAt())
+                .lastLoginAt(user.getLastLoginAt())
+                .build();
     }
 }
