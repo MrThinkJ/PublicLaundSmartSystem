@@ -129,14 +129,16 @@ public class MachineServiceImpl implements MachineService{
     }
 
     @Override
-    public MachineDto getMachineAreBeingReservedByUser(Integer userId) {
-        return machineRepository.findMachineAreBeingReservedByUser(userId).map(this::mapToDto).orElse(null);
+    public MachineDto getMachineAreBeingReservedByUser(String username) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(() ->
+                new ResourceNotFoundException("User", "username", username));
+        return machineRepository.findMachineAreBeingReservedByUser(user.getId()).map(this::mapToDto).orElse(null);
     }
 
     @Override
-    public List<MachineAndTimeDto> getMachinesAreBeingUsedByUser(Integer userId) {
-        User user = userRepository.findById(userId).orElseThrow(() ->
-                new ResourceNotFoundException("User", "id", userId.toString()));
+    public List<MachineAndTimeDto> getMachinesAreBeingUsedByUser(String username) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(() ->
+                new ResourceNotFoundException("User", "username", username));
         List<Machine> machines = machineRepository.findMachinesAreBeingUsedByUser(user.getId());
         List<Integer> machineIds = machines.stream().map(Machine::getId).toList();
         List<UsageHistory> usageHistories = usageHistoryRepository.findByCurrentUsedMachineIdsAndUserId(machineIds, user.getId());

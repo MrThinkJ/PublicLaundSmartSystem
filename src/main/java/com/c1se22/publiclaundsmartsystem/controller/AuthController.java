@@ -1,17 +1,13 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
-import com.c1se22.publiclaundsmartsystem.payload.JwtResponse;
-import com.c1se22.publiclaundsmartsystem.payload.LoginDto;
-import com.c1se22.publiclaundsmartsystem.payload.LoginResponse;
-import com.c1se22.publiclaundsmartsystem.payload.RegisterDto;
+import com.c1se22.publiclaundsmartsystem.payload.*;
 import com.c1se22.publiclaundsmartsystem.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
@@ -31,5 +27,11 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<Boolean> register(@RequestBody @Valid RegisterDto registerDto){
         return ResponseEntity.ok(authService.register(registerDto));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> me(Authentication authentication){
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(authService.me(userDetails.getUsername()));
     }
 }

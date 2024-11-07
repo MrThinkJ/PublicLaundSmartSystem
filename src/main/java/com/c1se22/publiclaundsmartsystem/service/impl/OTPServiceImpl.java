@@ -62,7 +62,7 @@ public class OTPServiceImpl implements OTPService {
         otp.setCode(otpCode);
         otp.setEmail(emailRequestDto.getEmail());
         otp.setIsUsed(false);
-
+        otpRepository.save(otp);
         sendOTP(emailRequestDto.getEmail(), otpCode);
         return OTPResponseDto.builder()
                 .isSuccess(true)
@@ -86,6 +86,8 @@ public class OTPServiceImpl implements OTPService {
         passwordResetToken.setToken(token);
         passwordResetToken.setUser(user);
         passwordResetTokenRepository.save(passwordResetToken);
+        otp.setIsUsed(true);
+        otpRepository.save(otp);
         return VerifyOTPResponseDto.builder()
                 .isSuccess(true)
                 .resetToken(token)

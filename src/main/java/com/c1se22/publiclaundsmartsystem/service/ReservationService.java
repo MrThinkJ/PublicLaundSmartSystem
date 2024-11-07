@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.service;
 
+import com.c1se22.publiclaundsmartsystem.payload.ReservationCreateDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationResponseDto;
 
@@ -12,7 +13,7 @@ public interface ReservationService {
     ReservationResponseDto getReservationById(Integer reservationId);
     List<ReservationResponseDto> getReservationsByUserId(Integer userId);
     List<ReservationResponseDto> getReservationsByMachineId(Integer machineId);
-    ReservationResponseDto createReservation(ReservationDto reservationDto);
+    ReservationResponseDto createReservation(String username, ReservationCreateDto reservationDto);
     ReservationResponseDto updateReservation(Integer reservationId, ReservationDto reservationDto);
     ReservationResponseDto completeReservation(String username);
     ReservationResponseDto getPendingReservationByUserId(String username);

@@ -7,6 +7,7 @@ import com.c1se22.publiclaundsmartsystem.event.ReservationCreatedEvent;
 import com.c1se22.publiclaundsmartsystem.exception.APIException;
 import com.c1se22.publiclaundsmartsystem.exception.InsufficientBalanceException;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
+import com.c1se22.publiclaundsmartsystem.payload.ReservationCreateDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationResponseDto;
 import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
@@ -76,9 +77,9 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public ReservationResponseDto createReservation(ReservationDto reservationDto) {
-        User user = userRepository.findById(reservationDto.getUserId()).orElseThrow(
-                () -> new ResourceNotFoundException("User", "userId", reservationDto.getUserId().toString())
+    public ReservationResponseDto createReservation(String username, ReservationCreateDto reservationDto) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
+                () -> new ResourceNotFoundException("User", "username", username)
         );
         if (reservationRepository.findCurrentPendingReservationByUser(user.getId())) {
             throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.USER_ALREADY_HAS_PENDING_RESERVATION, user.getId());
@@ -157,6 +158,9 @@ public class ReservationServiceImpl implements ReservationService {
                 .build();
 
         usageHistoryService.createUsageHistory(usageHistoryDTO);
+        if (user.getBalance().compareTo(savedReservation.getWashingType().getDefaultPrice()) < 0) {
+            throw new InsufficientBalanceException(savedReservation.getWashingType().getDefaultPrice(), user.getBalance());
+        }
         user.setBalance(user.getBalance().subtract(savedReservation.getWashingType().getDefaultPrice()));
         userRepository.save(user);
         Machine machine = savedReservation.getMachine();
