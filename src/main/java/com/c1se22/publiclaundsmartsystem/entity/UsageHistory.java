@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.entity;
 
+import com.c1se22.publiclaundsmartsystem.enums.UsageHistoryStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,6 +25,9 @@ public class UsageHistory {
     private LocalDateTime endTime;
     @Column(name = "cost", precision = 10, scale = 2, nullable = false)
     private BigDecimal cost;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private UsageHistoryStatus status;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "machine_id")
     private Machine machine;
