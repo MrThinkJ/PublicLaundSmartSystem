@@ -53,13 +53,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public boolean register(RegisterDto registerDto) {
+        if (!registerDto.getPassword().equals(registerDto.getConfirmPassword())) {
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.PASSWORD_DOES_NOT_MATCH);
+        }
         User user = userRepository.findByUsernameOrEmail(registerDto.getUsername(), registerDto.getEmail()).orElse(null);
         if (user != null) {
             throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.EXISTING_USERNAME_OR_EMAIL);
         }
         user = userRepository.findByPhone(registerDto.getPhone()).orElse(null);
         if (user != null) {
-            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.EXISTING_PHONE);
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.EXISTING_PHONE, registerDto.getPhone());
         }
         user = User.builder()
                 .username(registerDto.getUsername())

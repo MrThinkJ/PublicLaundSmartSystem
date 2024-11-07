@@ -38,9 +38,10 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.getReservationsByMachineId(id));
     }
 
-    @GetMapping("/pending/users/{id}")
-    public ResponseEntity<ReservationResponseDto> getPendingReservationByUserId(@PathVariable Integer id){
-        return ResponseEntity.ok(reservationService.getPendingReservationByUserId(id));
+    @GetMapping("/pending/users")
+    public ResponseEntity<ReservationResponseDto> getPendingReservationByUserId(Authentication authentication){
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(reservationService.getPendingReservationByUserId(userDetails.getUsername()));
     }
 
     @PostMapping
@@ -48,21 +49,16 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.createReservation(reservationDto));
     }
 
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<String> deleteReservation(@PathVariable Integer id){
-//        reservationService.deleteReservation(id);
-//        return ResponseEntity.ok("Reservation deleted");
-//    }
-
     @PutMapping("/complete")
     public ResponseEntity<ReservationResponseDto> completeReservation(Authentication authentication){
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return ResponseEntity.ok(reservationService.completeReservation(userDetails.getUsername()));
     }
 
-    @PutMapping("/{id}/cancel")
-    public ResponseEntity<Boolean> cancelReservation(@PathVariable Integer id){
-        reservationService.cancelReservation(id);
+    @PutMapping("/cancel")
+    public ResponseEntity<Boolean> cancelReservation(Authentication authentication){
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        reservationService.cancelReservation(userDetails.getUsername());
         return ResponseEntity.ok(true);
     }
     @GetMapping("/period")

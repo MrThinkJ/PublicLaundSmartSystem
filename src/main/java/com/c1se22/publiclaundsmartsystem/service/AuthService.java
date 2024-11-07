@@ -7,4 +7,7 @@ import com.c1se22.publiclaundsmartsystem.payload.RegisterDto;
 public interface AuthService {
     LoginResponse login(LoginDto loginDto);
     boolean register(RegisterDto registerDto);
+
+//    boolean forgotPassword(String email);
+//    boolean changePassword(String username, String password);
 }
