@@ -15,9 +15,9 @@ public interface ReservationService {
     ReservationResponseDto createReservation(ReservationDto reservationDto);
     ReservationResponseDto updateReservation(Integer reservationId, ReservationDto reservationDto);
     ReservationResponseDto completeReservation(String username);
-    ReservationResponseDto getPendingReservationByUserId(Integer userId);
+    ReservationResponseDto getPendingReservationByUserId(String username);
     List<ReservationResponseDto> getReservationsForPeriod(LocalDate start, LocalDate end);
-    void cancelReservation(Integer reservationId);
+    void cancelReservation(String username);
     void deleteReservation(Integer reservationId);
     int getTotalReservationsForPeriod(LocalDate start, LocalDate end);
     int getTotalReservationsForPeriodByMachineId(LocalDateTime start, LocalDateTime end, Integer machineId);

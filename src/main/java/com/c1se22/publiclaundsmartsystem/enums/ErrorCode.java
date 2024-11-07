@@ -28,6 +28,10 @@ public enum ErrorCode {
     EXISTING_USERNAME(1302, "Username %s already exists."),
     EXISTING_EMAIL(1303, "Email %s already exists."),
     EXISTING_PHONE(1304, "Phone %s already exists."),
+    PASSWORD_DOES_NOT_MATCH(1305, "Password does not match."),
+    OTP_EXPIRED(1306, "OTP has expired."),
+    INVALID_OTP(1307, "Invalid OTP."),
+    RESET_TOKEN_EXPIRED(1308, "Password reset token has expired."),
 
     // Validation errors (2000-2999)
     FIELD_REQUIRED(2000, "Field is required"),

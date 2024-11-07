@@ -30,7 +30,7 @@ public class ReservationEventHandler {
         Runnable task = () -> {
             Reservation currentReservation = reservationRepository.findById(reservation.getId()).orElse(null);
             if (currentReservation != null && currentReservation.getStatus().equals(ReservationStatus.PENDING)){
-                reservationService.cancelReservation(currentReservation.getId());
+                reservationService.cancelReservation(currentReservation.getUser().getUsername());
                 notificationService.sendNotification(currentReservation.getUser().getId(),
                         "Your reservation has been cancelled due to inactivity");
             }

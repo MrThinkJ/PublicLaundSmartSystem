@@ -5,6 +5,7 @@ import com.c1se22.publiclaundsmartsystem.payload.LoginDto;
 import com.c1se22.publiclaundsmartsystem.payload.LoginResponse;
 import com.c1se22.publiclaundsmartsystem.payload.RegisterDto;
 import com.c1se22.publiclaundsmartsystem.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +29,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Boolean> register(@RequestBody RegisterDto registerDto){
+    public ResponseEntity<Boolean> register(@RequestBody @Valid RegisterDto registerDto){
         return ResponseEntity.ok(authService.register(registerDto));
     }
 }

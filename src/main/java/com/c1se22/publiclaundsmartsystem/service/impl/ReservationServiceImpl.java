@@ -165,9 +165,12 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public ReservationResponseDto getPendingReservationByUserId(Integer userId) {
-        Reservation reservation = reservationRepository.getPendingReservationByUserId(userId).orElseThrow(
-                () -> new APIException(HttpStatus.NOT_FOUND, ErrorCode.NO_PENDING_RESERVATION, userId)
+    public ReservationResponseDto getPendingReservationByUserId(String username) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
+                () -> new ResourceNotFoundException("User", "username", username)
+        );
+        Reservation reservation = reservationRepository.getPendingReservationByUserId(user.getId()).orElseThrow(
+                () -> new APIException(HttpStatus.NOT_FOUND, ErrorCode.NO_PENDING_RESERVATION, user.getId())
         );
         return mapToResponseDto(reservation);
     }
@@ -183,9 +186,12 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public void cancelReservation(Integer reservationId) {
-        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
-                () -> new ResourceNotFoundException("Reservation", "reservationId", reservationId.toString())
+    public void cancelReservation(String username) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
+                () -> new ResourceNotFoundException("User", "username", username)
+        );
+        Reservation reservation = reservationRepository.getPendingReservationByUserId(user.getId()).orElseThrow(
+                () -> new APIException(HttpStatus.NOT_FOUND, ErrorCode.NO_PENDING_RESERVATION, user.getId())
         );
         reservation.setStatus(ReservationStatus.CANCELED);
         reservation.setUpdatedAt(LocalDateTime.now());
