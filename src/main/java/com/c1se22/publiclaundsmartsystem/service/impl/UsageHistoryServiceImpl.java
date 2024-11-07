@@ -5,6 +5,7 @@ import com.c1se22.publiclaundsmartsystem.entity.UsageHistory;
 import com.c1se22.publiclaundsmartsystem.entity.User;
 import com.c1se22.publiclaundsmartsystem.entity.WashingType;
 import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
+import com.c1se22.publiclaundsmartsystem.enums.UsageHistoryStatus;
 import com.c1se22.publiclaundsmartsystem.event.WashingNearCompleteEvent;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
 import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
@@ -63,7 +64,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         WashingType washingType = washingTypeRepository.findById(usageHistoryDto.getWashingTypeId()).orElseThrow(   
                 () -> new ResourceNotFoundException("WashingType", "id", usageHistoryDto.getWashingTypeId().toString())
         );
-        usageHistory.setEndTime(null);
+        usageHistory.setEndTime(usageHistory.getStartTime().plusMinutes(washingType.getDefaultDuration()));
         User user = userRepository.findById(usageHistoryDto.getUserId()).orElseThrow(
                 () -> new ResourceNotFoundException("User", "id", usageHistoryDto.getUserId().toString())
         );
@@ -71,6 +72,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         usageHistory.setMachine(machine);
         usageHistory.setWashingType(washingType);
         usageHistory.setUser(user);
+        usageHistory.setStatus(UsageHistoryStatus.IN_PROGRESS);
         UsageHistory newUsageHistory = usageHistoryRepository.save(usageHistory);
 
         eventService.publishEvent(new WashingNearCompleteEvent(newUsageHistory, washingType.getDefaultDuration()));

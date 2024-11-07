@@ -26,6 +26,6 @@ public interface UsageHistoryRepository extends JpaRepository<UsageHistory, Inte
     BigDecimal sumCostByStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
     @Query("SELECT COUNT(u) FROM UsageHistory u WHERE u.startTime BETWEEN :start AND :end")
     Long countByStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
-    @Query("SELECT u FROM UsageHistory u WHERE u.machine.id IN :machineIds AND u.user.id = :userId AND u.endTime IS NULL")
+    @Query("SELECT u FROM UsageHistory u WHERE u.machine.id IN :machineIds AND u.user.id = :userId AND u.status = 'IN_PROGRESS'")
     List<UsageHistory> findByCurrentUsedMachineIdsAndUserId(List<Integer> machineIds, Integer userId);
 }
