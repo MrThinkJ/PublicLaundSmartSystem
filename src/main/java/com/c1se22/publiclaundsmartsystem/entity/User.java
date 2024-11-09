@@ -32,7 +32,6 @@ public class User {
     private String phone;
     @Column(name = "balance", precision = 10, scale = 2)
     private BigDecimal balance = BigDecimal.ZERO;
-    @Enumerated(EnumType.STRING)
     @Column(name = "is_active")
     private Boolean isActive = Boolean.TRUE;
     @Column(name = "created_at")
