@@ -67,4 +67,9 @@ public class MachineController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return ResponseEntity.ok(machineService.getMachineAreBeingReservedByUser(userDetails.getUsername()));
     }
+    @PatchMapping("/error/{id}")
+    public ResponseEntity<Boolean> updateMachineErrorStatus(@PathVariable Integer id) {
+        machineService.updateMachineErrorStatus(id);
+        return ResponseEntity.ok(true);
+    }
 }

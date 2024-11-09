@@ -15,10 +15,7 @@ import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.repository.ReservationRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.repository.WashingTypeRepository;
-import com.c1se22.publiclaundsmartsystem.service.EventService;
-import com.c1se22.publiclaundsmartsystem.service.MachineService;
-import com.c1se22.publiclaundsmartsystem.service.ReservationService;
-import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
+import com.c1se22.publiclaundsmartsystem.service.*;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -38,6 +35,7 @@ public class ReservationServiceImpl implements ReservationService {
     MachineService machineService;
     UsageHistoryService usageHistoryService;
     EventService eventService;
+    UserBanService userBanService;
 
     @Override
     public List<ReservationResponseDto> getAllReservations() {
@@ -202,6 +200,7 @@ public class ReservationServiceImpl implements ReservationService {
         Machine machine = reservation.getMachine();
         machineService.updateMachineStatus(machine.getId(), "AVAILABLE");
         reservationRepository.save(reservation);
+        userBanService.handleCancelReservation(user.getId());
     }
 
     @Override

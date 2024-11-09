@@ -17,4 +17,5 @@ public interface MachineService {
     MachineDto updateMachineStatus(Integer id, String status);
     MachineDto getMachineAreBeingReservedByUser(String username);
     List<MachineAndTimeDto> getMachinesAreBeingUsedByUser(String username);
+    void updateMachineErrorStatus(Integer id);
 }

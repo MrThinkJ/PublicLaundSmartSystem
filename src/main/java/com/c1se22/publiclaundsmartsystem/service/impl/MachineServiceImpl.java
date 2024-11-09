@@ -14,8 +14,10 @@ import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UsageHistoryRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.*;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -24,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +37,7 @@ public class MachineServiceImpl implements MachineService{
     UsageHistoryRepository usageHistoryRepository;
     UserRepository userRepository;
     FirebaseDatabase firebaseDatabase;
+    private static final Logger logger = LoggerFactory.getLogger(MachineServiceImpl.class);
 
     @Override
     public List<MachineDto> getAllMachines() {
@@ -143,6 +147,33 @@ public class MachineServiceImpl implements MachineService{
         List<Integer> machineIds = machines.stream().map(Machine::getId).toList();
         List<UsageHistory> usageHistories = usageHistoryRepository.findByCurrentUsedMachineIdsAndUserId(machineIds, user.getId());
         return usageHistories.stream().map(usageHistory -> mapToMachineAndTimeDto(usageHistory.getMachine(), usageHistory)).collect(Collectors.toList());
+    }
+
+    @Override
+    public void updateMachineErrorStatus(Integer id) {
+        Machine machine = machineRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Machine", "id", id.toString()));
+        CompletableFuture<String> future = new CompletableFuture<>();
+        String path = "machines/" + id + "/status";
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference(path);
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String value = dataSnapshot.getValue(String.class);
+                future.complete(value);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                future.completeExceptionally(error.toException());
+            }
+        });
+        String result = future.join();
+        if (result != null) {
+            MachineStatus machineStatus = MachineStatus.valueOf(result.toUpperCase());
+            machine.setStatus(machineStatus);
+            machineRepository.save(machine);
+        }
     }
 
     private MachineDto mapToDto(Machine machine) {
