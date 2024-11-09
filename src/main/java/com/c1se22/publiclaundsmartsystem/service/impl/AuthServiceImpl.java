@@ -2,6 +2,7 @@ package com.c1se22.publiclaundsmartsystem.service.impl;
 
 import com.c1se22.publiclaundsmartsystem.entity.Role;
 import com.c1se22.publiclaundsmartsystem.entity.User;
+import com.c1se22.publiclaundsmartsystem.entity.UserBanHistory;
 import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
 import com.c1se22.publiclaundsmartsystem.enums.RoleEnum;
 import com.c1se22.publiclaundsmartsystem.exception.APIException;
@@ -10,9 +11,11 @@ import com.c1se22.publiclaundsmartsystem.payload.LoginResponse;
 import com.c1se22.publiclaundsmartsystem.payload.RegisterDto;
 import com.c1se22.publiclaundsmartsystem.payload.UserDto;
 import com.c1se22.publiclaundsmartsystem.repository.RoleRepository;
+import com.c1se22.publiclaundsmartsystem.repository.UserBanHistoryRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.security.JwtProvider;
 import com.c1se22.publiclaundsmartsystem.service.AuthService;
+import com.c1se22.publiclaundsmartsystem.service.UserBanService;
 import lombok.AllArgsConstructor;
 import org.apache.http.protocol.HTTP;
 import org.springframework.http.HttpStatus;
@@ -36,6 +39,8 @@ public class AuthServiceImpl implements AuthService {
     AuthenticationManager authenticationManager;
     JwtProvider jwtProvider;
     PasswordEncoder passwordEncoder;
+    UserBanService userBanService;
+    UserBanHistoryRepository userBanHistoryRepository;
 
     @Override
     public LoginResponse login(LoginDto loginDto) {
@@ -46,6 +51,12 @@ public class AuthServiceImpl implements AuthService {
         String username = authentication.getName();
         User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
                 ()-> new UsernameNotFoundException("User not found with phone username or email: "+username));
+        if (!user.getIsActive()){
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.USER_DELETED, username);
+        }
+        if (userBanService.isUserBanned(user.getId())){
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.USER_BANNED, username);
+        }
         return LoginResponse.builder()
                 .accessToken(token)
                 .userId(user.getId())
@@ -78,6 +89,10 @@ public class AuthServiceImpl implements AuthService {
         Set<Role> roles = Set.of(roleRepository.findByName(RoleEnum.ROLE_ADMIN.name()));
         user.setRoles(roles);
         userRepository.save(user);
+        UserBanHistory userBanHistory = UserBanHistory.builder()
+                .user(user)
+                .build();
+        userBanHistoryRepository.save(userBanHistory);
         return true;
     }
 

@@ -10,6 +10,8 @@ public enum ErrorCode {
     RESOURCE_ALREADY_EXISTS(1001, "%s with id %s already exists"),
     RESOURCE_NOT_AVAILABLE(1002, "%s with id %s is not available"),
     RESOURCE_NOT_ACTIVE(1003, "%s with id %s is not active"),
+    USER_BANNED(1004, "User %s is banned"),
+    USER_DELETED(1005, "User %s is deleted"),
 
     // Authentication errors (1100-1199)
     UNAUTHORIZED(1100, "Unauthorized access"),
