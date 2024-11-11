@@ -33,6 +33,7 @@ public enum ErrorCode {
     PASSWORD_DOES_NOT_MATCH(1305, "Password does not match."),
     OTP_EXPIRED(1306, "OTP has expired."),
     INVALID_OTP(1307, "Invalid OTP."),
+    USED_OTP(1308, "OTP has already been used."),
     RESET_TOKEN_EXPIRED(1308, "Password reset token has expired."),
 
     // Validation errors (2000-2999)

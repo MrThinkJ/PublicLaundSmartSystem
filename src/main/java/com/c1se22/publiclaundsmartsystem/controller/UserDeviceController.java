@@ -20,11 +20,13 @@ public class UserDeviceController {
     public ResponseEntity<List<UserDeviceResponseDto>> getDevicesByUserId(@PathVariable Integer userId){
         return ResponseEntity.ok(userDeviceService.getDeviceByUserId(userId));
     }
+
     @PostMapping("/register")
     public ResponseEntity<Boolean> registerDevice(@RequestBody @Valid UserDeviceRegisterDto userDevice){
         userDeviceService.registerDevice(userDevice);
         return ResponseEntity.ok(true);
     }
+
     @PatchMapping("/deactivate")
     public ResponseEntity<Boolean> deactivateDevice(@RequestParam String fcmToken){
         return ResponseEntity.ok(userDeviceService.deactivateDevice(fcmToken));

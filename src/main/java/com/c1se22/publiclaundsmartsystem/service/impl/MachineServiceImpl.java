@@ -91,6 +91,7 @@ public class MachineServiceImpl implements MachineService{
         FirebaseMachine firebaseMachine = FirebaseMachine.builder()
                 .id(machine.getId())
                 .status(String.valueOf(machine.getStatus()))
+                .duration(0)
                 .build();
         firebaseDatabase.getReference("machines").child(firebaseMachine.getId().toString()).setValueAsync(firebaseMachine);
         return mapToDto(newMachine);
@@ -123,12 +124,8 @@ public class MachineServiceImpl implements MachineService{
                 new ResourceNotFoundException("Machine", "id", id.toString()));
         MachineStatus machineStatus = MachineStatus.valueOf(status.toUpperCase());
         machine.setStatus(machineStatus);
-        FirebaseMachine firebaseMachine = FirebaseMachine.builder()
-                .id(machine.getId())
-                .status(String.valueOf(machine.getStatus()))
-                .build();
         Machine updatedMachine = machineRepository.save(machine);
-        firebaseDatabase.getReference("machines").child(firebaseMachine.getId().toString()).setValueAsync(firebaseMachine);
+        firebaseDatabase.getReference("machines").child(id.toString()).child("status").setValueAsync(status);
         return mapToDto(updatedMachine);
     }
 

@@ -17,6 +17,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Random;
@@ -51,6 +52,7 @@ public class OTPServiceImpl implements OTPService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public OTPResponseDto sendOTP(EmailRequestDto emailRequestDto) {
         User user = userRepository.findByUsernameOrEmail(emailRequestDto.getEmail(), emailRequestDto.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", emailRequestDto.getEmail()));
@@ -72,9 +74,12 @@ public class OTPServiceImpl implements OTPService {
 
     @Override
     public VerifyOTPResponseDto verifyOTP(VerifyOTPRequestDto verifyOTPRequestDto) {
-        OTP otp = otpRepository.findByEmailAndCodeAndIsUsedFalse(verifyOTPRequestDto.getEmail(),
+        OTP otp = otpRepository.findByEmailAndCode(verifyOTPRequestDto.getEmail(),
                 verifyOTPRequestDto.getOtp()).orElseThrow(
                         () -> new ResourceNotFoundException("OTP", "code", verifyOTPRequestDto.getOtp()));
+        if (otp.getIsUsed()) {
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.USED_OTP);
+        }
         if (otp.getExpiryDate().before(new Date())) {
             throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.OTP_EXPIRED);
         }
@@ -82,9 +87,14 @@ public class OTPServiceImpl implements OTPService {
                 .orElseThrow(
                     () -> new ResourceNotFoundException("User", "email", verifyOTPRequestDto.getEmail()));
         String token = generateToken();
-        PasswordResetToken passwordResetToken = new PasswordResetToken();
+        PasswordResetToken passwordResetToken = passwordResetTokenRepository.findByUserId(user.getId())
+                .orElse(null);
+        if (passwordResetToken == null) {
+            passwordResetToken = new PasswordResetToken();
+            passwordResetToken.setUser(user);
+        }
         passwordResetToken.setToken(token);
-        passwordResetToken.setUser(user);
+        passwordResetToken.setExpiryDate(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000));
         passwordResetTokenRepository.save(passwordResetToken);
         otp.setIsUsed(true);
         otpRepository.save(otp);

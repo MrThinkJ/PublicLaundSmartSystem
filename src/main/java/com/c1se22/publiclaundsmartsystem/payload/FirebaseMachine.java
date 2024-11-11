@@ -8,4 +8,5 @@ import lombok.Data;
 public class FirebaseMachine {
     private Integer id;
     private String status;
+    private Integer duration;
 }
