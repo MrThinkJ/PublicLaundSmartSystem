@@ -17,6 +17,7 @@ import com.c1se22.publiclaundsmartsystem.repository.WashingTypeRepository;
 import com.c1se22.publiclaundsmartsystem.service.EventService;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
 import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
+import com.google.firebase.database.FirebaseDatabase;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +39,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
     UserRepository userRepository;
     MachineService machineService;
     EventService eventService;
+    FirebaseDatabase firebaseDatabase;
     @Override
     public List<UsageHistoryDto> getAllUsageHistories() {
         return usageHistoryRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
@@ -74,7 +76,8 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         usageHistory.setUser(user);
         usageHistory.setStatus(UsageHistoryStatus.IN_PROGRESS);
         UsageHistory newUsageHistory = usageHistoryRepository.save(usageHistory);
-
+        firebaseDatabase.getReference("machines").child(machine.getId().toString()).child("duration")
+                .setValueAsync(washingType.getDefaultDuration().toString());
         eventService.publishEvent(new WashingNearCompleteEvent(newUsageHistory, washingType.getDefaultDuration()));
     }
 
@@ -85,6 +88,8 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         );
         Machine machine = usageHistory.getMachine();
         machineService.updateMachineStatus(machine.getId(), "AVAILABLE");
+        firebaseDatabase.getReference("machines").child(machine.getId().toString()).child("duration")
+                .setValueAsync(0);
         usageHistoryRepository.save(usageHistory);
     }
 
@@ -124,7 +129,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         for (Object[] result : results) {
             Integer washingTypeId = (Integer) result[0];
             BigDecimal totalCost = (BigDecimal) result[1];
-            
+
             WashingType washingType = washingTypeRepository.findById(washingTypeId)
                 .orElseThrow(() -> new ResourceNotFoundException("WashingType", "id", washingTypeId.toString()));
 

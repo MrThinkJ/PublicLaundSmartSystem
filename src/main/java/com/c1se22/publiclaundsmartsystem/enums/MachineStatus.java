@@ -4,5 +4,6 @@ public enum MachineStatus {
     AVAILABLE,
     IN_USE,
     RESERVED,
-    UNDER_MAINTENANCE
+    UNDER_MAINTENANCE,
+    ERROR
 }

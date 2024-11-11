@@ -9,5 +9,5 @@ import java.util.Optional;
 @Repository
 public interface OTPRepository extends JpaRepository<OTP, Integer> {
     void deleteByEmailAndIsUsedFalse(String email);
-    Optional<OTP> findByEmailAndCodeAndIsUsedFalse(String email, String code);
+    Optional<OTP> findByEmailAndCode(String email, String code);
 }
