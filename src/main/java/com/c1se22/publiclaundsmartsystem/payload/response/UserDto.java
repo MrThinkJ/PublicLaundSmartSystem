@@ -19,6 +19,7 @@ public class UserDto {
     private String email;
     private String phone;
     private BigDecimal balance = BigDecimal.ZERO;
+    private Boolean is_active;
     private LocalDate createdAt;
     private LocalDateTime lastLoginAt;
     private String roleName;
