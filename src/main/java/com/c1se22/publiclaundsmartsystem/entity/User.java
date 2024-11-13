@@ -32,6 +32,8 @@ public class User {
     private String phone;
     @Column(name = "balance", precision = 10, scale = 2)
     private BigDecimal balance = BigDecimal.ZERO;
+    @Column(name = "is_active")
+    private Boolean isActive = Boolean.TRUE;
     @Column(name = "created_at")
     private LocalDate createdAt;
     @Column(name = "last_login_at")

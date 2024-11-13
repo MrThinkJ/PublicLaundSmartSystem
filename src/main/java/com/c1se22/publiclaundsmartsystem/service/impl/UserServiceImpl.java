@@ -37,6 +37,7 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userDto.getEmail());
         user.setPhone(userDto.getPhone());
         user.setBalance(userDto.getBalance());
+        user.setIsActive(userDto.getIs_active());
         user.setCreatedAt(userDto.getCreatedAt());
         user.setLastLoginAt(userDto.getLastLoginAt());
         return mapToUserDto(userRepository.save(user));
@@ -53,6 +54,7 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userDto.getEmail());
         user.setPhone(userDto.getPhone());
         user.setBalance(userDto.getBalance());
+        user.setIsActive(userDto.getIs_active());
         user.setCreatedAt(userDto.getCreatedAt());
         user.setLastLoginAt(userDto.getLastLoginAt());
         return mapToUserDto(userRepository.save(user));
@@ -74,6 +76,7 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .balance(user.getBalance())
+                .is_active(user.getIsActive())
                 .createdAt(user.getCreatedAt())
                 .lastLoginAt(user.getLastLoginAt())
                 .build();
