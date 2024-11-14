@@ -3,6 +3,7 @@ package com.c1se22.publiclaundsmartsystem.controller;
 import com.c1se22.publiclaundsmartsystem.payload.UserDto;
 import com.c1se22.publiclaundsmartsystem.service.UserService;
 import lombok.AllArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,11 +22,13 @@ public class UserController {
     UserService userService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public  ResponseEntity<List<UserDto>> getUsers(){
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public  ResponseEntity<UserDto> getUserById(@PathVariable Integer id){
         return ResponseEntity.ok(userService.getUserById(id));
     }
@@ -41,6 +44,7 @@ public class UserController {
     }
 
     @DeleteMapping ("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity <String> deleteUser(@PathVariable Integer id){
         userService.deleteUser(id);
         return ResponseEntity.ok("User deleted successfully");

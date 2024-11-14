@@ -85,12 +85,15 @@ public class AuthServiceImpl implements AuthService {
                 .balance(BigDecimal.valueOf(0))
                 .createdAt(LocalDate.now())
                 .lastLoginAt(LocalDateTime.now())
+                .isActive(true)
                 .build();
         Set<Role> roles = Set.of(roleRepository.findByName(RoleEnum.ROLE_ADMIN.name()));
         user.setRoles(roles);
         userRepository.save(user);
         UserBanHistory userBanHistory = UserBanHistory.builder()
                 .user(user)
+                .banCount(0)
+                .cancellationCount(0)
                 .build();
         userBanHistoryRepository.save(userBanHistory);
         return true;
