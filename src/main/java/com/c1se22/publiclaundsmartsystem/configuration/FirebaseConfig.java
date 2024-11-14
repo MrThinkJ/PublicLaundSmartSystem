@@ -17,8 +17,13 @@ import java.io.IOException;
 public class FirebaseConfig {
     @Bean
     FirebaseApp firebaseApp() throws IOException {
-        FileInputStream serviceAccount =
-                new FileInputStream("src/main/resources/config/firebase_key.json");
+        FileInputStream serviceAccount;
+        try {
+            serviceAccount = new FileInputStream("config/firebase_key.json");
+        } catch (FileNotFoundException e) {
+            serviceAccount = new FileInputStream("src/main/resources/config/firebase_key.json");
+        }
+        
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .setDatabaseUrl("https://laundrysystem-d73d7-default-rtdb.asia-southeast1.firebasedatabase.app")

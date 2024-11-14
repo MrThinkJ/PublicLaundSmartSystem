@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -36,22 +37,26 @@ public class MachineController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<MachineDto> addMachine(@RequestBody @Valid MachineDto machineDto) {
         return ResponseEntity.ok(machineService.addMachine(machineDto));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<MachineDto> updateMachine(@PathVariable Integer id, @RequestBody @Valid MachineDto machineDto) {
         return ResponseEntity.ok(machineService.updateMachine(id, machineDto));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<String> deleteMachine(@PathVariable Integer id) {
         machineService.deleteMachine(id);
         return ResponseEntity.ok("Machine deleted successfully!");
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<MachineDto> updateMachineStatus(@PathVariable Integer id, @RequestParam String status) {
         return ResponseEntity.ok(machineService.updateMachineStatus(id, status));
     }
@@ -67,7 +72,9 @@ public class MachineController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return ResponseEntity.ok(machineService.getMachineAreBeingReservedByUser(userDetails.getUsername()));
     }
+
     @PatchMapping("/error/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<Boolean> updateMachineErrorStatus(@PathVariable Integer id) {
         machineService.updateMachineErrorStatus(id);
         return ResponseEntity.ok(true);

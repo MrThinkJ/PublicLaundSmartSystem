@@ -11,6 +11,7 @@ import com.c1se22.publiclaundsmartsystem.util.AppConstants;
 import io.netty.channel.unix.UnixChannelUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -21,6 +22,7 @@ public class UserBanServiceImpl implements UserBanService {
     UserBanHistoryRepository userBanHistoryRepository;
     UserRepository userRepository;
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void handleCancelReservation(Integer userId) {
         UserBanHistory userBanHistory = userBanHistoryRepository.findByUserId(userId);
         if (userBanHistory == null){
@@ -46,7 +48,10 @@ public class UserBanServiceImpl implements UserBanService {
             return false;
         }
         LocalDateTime now = LocalDateTime.now();
-        return userBanHistory.getLastBanEnd() == null || now.isBefore(userBanHistory.getLastBanEnd());
+        if (userBanHistory.getLastBanStart() == null){
+            return false;
+        }
+        return now.isBefore(userBanHistory.getLastBanEnd());
     }
 
     @Override
@@ -85,7 +90,7 @@ public class UserBanServiceImpl implements UserBanService {
         userBanHistory.setCancellationCount(0);
         userBanHistory.setLastBanStart(LocalDateTime.now());
         userBanHistory.setLastBanEnd(LocalDateTime.now().plusDays(
-                AppConstants.BAN_DURATION[Math.min(userBanHistory.getBanCount(), AppConstants.BAN_DURATION.length -1)]));
+                AppConstants.BAN_DURATION[Math.min(userBanHistory.getBanCount()-1, AppConstants.BAN_DURATION.length -1)]));
         userBanHistory.setCancellationCount(0);
         userBanHistoryRepository.save(userBanHistory);
     }

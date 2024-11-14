@@ -7,6 +7,7 @@ import com.c1se22.publiclaundsmartsystem.service.ReservationService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ import java.util.List;
 public class ReservationController {
     ReservationService reservationService;
     @GetMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<List<ReservationResponseDto>> getAllReservations(){
         return ResponseEntity.ok(reservationService.getAllReservations());
     }
@@ -66,6 +68,7 @@ public class ReservationController {
     }
     
     @GetMapping("/period")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<List<ReservationResponseDto>> getReservationsForPeriod(@RequestParam LocalDate start, @RequestParam LocalDate end){
         return ResponseEntity.ok(reservationService.getReservationsForPeriod(start, end));
     }
