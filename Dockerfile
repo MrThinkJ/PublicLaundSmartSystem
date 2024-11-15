@@ -1,7 +1,7 @@
 FROM maven:3.9.8-eclipse-temurin-21 AS build
 COPY pom.xml /app/
 COPY src /app/src/
-COPY firebase_key.json /app/src/main/resources/config/firebase_key.json
+COPY /src/main/resources/config/firebase_key.json /app/src/main/resources/config/firebase_key.json
 WORKDIR /app
 RUN mvn clean package -DskipTests
 
