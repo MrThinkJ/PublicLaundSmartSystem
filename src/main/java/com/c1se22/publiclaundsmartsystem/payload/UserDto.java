@@ -21,4 +21,6 @@ public class UserDto {
     private BigDecimal balance = BigDecimal.ZERO;
     private LocalDate createdAt;
     private LocalDateTime lastLoginAt;
+    private String roleName;
+    private Integer roleId;
 }

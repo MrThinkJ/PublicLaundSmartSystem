@@ -87,7 +87,7 @@ public class AuthServiceImpl implements AuthService {
                 .lastLoginAt(LocalDateTime.now())
                 .isActive(true)
                 .build();
-        Set<Role> roles = Set.of(roleRepository.findByName(RoleEnum.ROLE_ADMIN.name()));
+        Set<Role> roles = Set.of(roleRepository.findByName(RoleEnum.ROLE_USER.name()));
         user.setRoles(roles);
         userRepository.save(user);
         UserBanHistory userBanHistory = UserBanHistory.builder()
@@ -103,6 +103,10 @@ public class AuthServiceImpl implements AuthService {
     public UserDto me(String username) {
         User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
                 ()-> new UsernameNotFoundException("User not found with phone username or email: "+username));
+        Role role = user.getRoles().stream().findFirst().orElse(null);
+        if (role == null){
+            throw new APIException(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
+        }
         return UserDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -112,6 +116,8 @@ public class AuthServiceImpl implements AuthService {
                 .balance(user.getBalance())
                 .createdAt(user.getCreatedAt())
                 .lastLoginAt(user.getLastLoginAt())
+                .roleId(role.getId())
+                .roleName(role.getName())
                 .build();
     }
 }
