@@ -1,8 +1,8 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
-import com.c1se22.publiclaundsmartsystem.payload.CheckoutResponseDto;
-import com.c1se22.publiclaundsmartsystem.payload.CreatePaymentLinkRequestBody;
-import com.c1se22.publiclaundsmartsystem.payload.PaymentLinkDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.CheckoutResponseDto;
+import com.c1se22.publiclaundsmartsystem.payload.request.CreatePaymentLinkRequestBody;
+import com.c1se22.publiclaundsmartsystem.payload.response.PaymentLinkDto;
 import com.c1se22.publiclaundsmartsystem.service.PaymentProcessingService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.AllArgsConstructor;

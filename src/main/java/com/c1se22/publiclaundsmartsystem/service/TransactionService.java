@@ -1,7 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.service;
 
 import com.c1se22.publiclaundsmartsystem.enums.TransactionStatus;
-import com.c1se22.publiclaundsmartsystem.payload.TransactionDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.TransactionDto;
 
 import java.util.List;
 

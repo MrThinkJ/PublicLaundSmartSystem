@@ -1,7 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
-import com.c1se22.publiclaundsmartsystem.payload.LocationDetailsDto;
-import com.c1se22.publiclaundsmartsystem.payload.LocationSummaryDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.LocationDetailsDto;
+import com.c1se22.publiclaundsmartsystem.payload.request.LocationSummaryDto;
 import com.c1se22.publiclaundsmartsystem.service.LocationService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

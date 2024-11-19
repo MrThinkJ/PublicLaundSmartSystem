@@ -1,7 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.service;
 
-import com.c1se22.publiclaundsmartsystem.payload.UserDeviceRegisterDto;
-import com.c1se22.publiclaundsmartsystem.payload.UserDeviceResponseDto;
+import com.c1se22.publiclaundsmartsystem.payload.request.UserDeviceRegisterDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.UserDeviceResponseDto;
 
 import java.util.List;
 

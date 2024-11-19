@@ -1,6 +1,10 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
-import com.c1se22.publiclaundsmartsystem.payload.*;
+import com.c1se22.publiclaundsmartsystem.payload.request.EmailRequestDto;
+import com.c1se22.publiclaundsmartsystem.payload.request.ResetPasswordRequestDto;
+import com.c1se22.publiclaundsmartsystem.payload.request.VerifyOTPRequestDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.OTPResponseDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.VerifyOTPResponseDto;
 import com.c1se22.publiclaundsmartsystem.service.OTPService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

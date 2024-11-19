@@ -1,8 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
-import com.c1se22.publiclaundsmartsystem.entity.UserDevice;
-import com.c1se22.publiclaundsmartsystem.payload.UserDeviceRegisterDto;
-import com.c1se22.publiclaundsmartsystem.payload.UserDeviceResponseDto;
+import com.c1se22.publiclaundsmartsystem.payload.request.UserDeviceRegisterDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.UserDeviceResponseDto;
 import com.c1se22.publiclaundsmartsystem.service.UserDeviceService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

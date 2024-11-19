@@ -2,16 +2,23 @@ package com.c1se22.publiclaundsmartsystem.service.impl;
 
 import com.c1se22.publiclaundsmartsystem.entity.Notification;
 import com.c1se22.publiclaundsmartsystem.entity.User;
+import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
+import com.c1se22.publiclaundsmartsystem.exception.APIException;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
-import com.c1se22.publiclaundsmartsystem.payload.NotificationDto;
+import com.c1se22.publiclaundsmartsystem.payload.internal.PushNotificationRequestDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.NotificationDto;
 import com.c1se22.publiclaundsmartsystem.repository.NotificationRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.service.NotificationService;
+import com.c1se22.publiclaundsmartsystem.service.PushNotificationService;
 import com.c1se22.publiclaundsmartsystem.service.UserDeviceService;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +32,8 @@ public class NotificationServiceImpl implements NotificationService {
     UserDeviceService userDeviceService;
     FirebaseMessaging firebaseMessaging;
     NotificationRepository notificationRepository;
+    PushNotificationService pushNotificationService;
+    private final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
     @Override
     public NotificationDto getNotificationById(Integer id) {
@@ -83,18 +92,16 @@ public class NotificationServiceImpl implements NotificationService {
         User toUser = userRepository.findById(toUserId).orElseThrow(
                 () -> new ResourceNotFoundException("User", "id", toUserId.toString()));
         List<String> deviceTokens = userDeviceService.getActiveUserToken(toUserId);
+        logger.info("Sending notification to user: "+toUser.getUsername());
         deviceTokens.forEach(token ->{
             try{
-                Message firebaseMessage = Message.builder()
-                        .setToken(token)
-                        .setNotification(
-                                com.google.firebase.messaging.Notification.builder()
-                                        .setTitle("System Notification")
-                                        .setBody(message)
-                                        .build()
-                        )
+                PushNotificationRequestDto request = PushNotificationRequestDto.builder()
+                        .title("System Notification")
+                        .message(message)
+                        .token(token)
                         .build();
-                firebaseMessaging.send(firebaseMessage);
+                pushNotificationService.sendPushNotificationToToken(request);
+                logger.info("Notification sent to device: "+token);
                 Notification notification = Notification.builder()
                         .user(toUser)
                         .message(message)
@@ -103,12 +110,27 @@ public class NotificationServiceImpl implements NotificationService {
                         .title("System Notification")
                         .build();
                 notificationRepository.save(notification);
-            } catch (FirebaseMessagingException e){
-                if (e.getErrorCode().toString().equals("messaging/invalid-registration-token")) {
-                    userDeviceService.deactivateDevice(token);
-                }
+                logger.info("Notification saved to database");
+            } catch (Exception e){
+                logger.error("Error sending notification to device: "+token);
+                logger.error(e.getMessage());
+                throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.INTERNAL_ERROR);
             }
         });
+    }
+
+    @Override
+    public void sendTestNotification() {
+        Message msg = Message.builder()
+                .setTopic("test")
+                .putData("body", "some data")
+                .build();
+        try{
+            String id = firebaseMessaging.send(msg);
+            logger.info("Message sent with ID: "+id);
+        } catch (FirebaseMessagingException e) {
+            e.printStackTrace();
+        }
     }
 
     private NotificationDto mapToDTO(Notification notification) {

@@ -1,6 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.security;
 
-import com.c1se22.publiclaundsmartsystem.payload.ErrorDetails;
+import com.c1se22.publiclaundsmartsystem.payload.response.ErrorDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

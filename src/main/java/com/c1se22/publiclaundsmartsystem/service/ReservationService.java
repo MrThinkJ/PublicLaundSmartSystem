@@ -1,8 +1,8 @@
 package com.c1se22.publiclaundsmartsystem.service;
 
-import com.c1se22.publiclaundsmartsystem.payload.ReservationCreateDto;
-import com.c1se22.publiclaundsmartsystem.payload.ReservationDto;
-import com.c1se22.publiclaundsmartsystem.payload.ReservationResponseDto;
+import com.c1se22.publiclaundsmartsystem.payload.request.ReservationCreateDto;
+import com.c1se22.publiclaundsmartsystem.payload.internal.ReservationDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.ReservationResponseDto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

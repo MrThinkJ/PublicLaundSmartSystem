@@ -1,7 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
 import com.c1se22.publiclaundsmartsystem.enums.TransactionStatus;
-import com.c1se22.publiclaundsmartsystem.payload.TransactionDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.TransactionDto;
 import com.c1se22.publiclaundsmartsystem.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

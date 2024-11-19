@@ -1,6 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
-import com.c1se22.publiclaundsmartsystem.payload.UserDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.UserDto;
 import com.c1se22.publiclaundsmartsystem.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,8 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import static com.c1se22.publiclaundsmartsystem.util.AppConstants.*;
 
 
 @RestController
