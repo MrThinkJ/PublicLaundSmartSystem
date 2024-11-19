@@ -1,12 +1,10 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
-import com.c1se22.publiclaundsmartsystem.payload.MachineAndTimeDto;
-import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.MachineAndTimeDto;
+import com.c1se22.publiclaundsmartsystem.payload.request.MachineDto;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
-import com.c1se22.publiclaundsmartsystem.service.impl.MachineServiceImpl;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -78,5 +76,18 @@ public class MachineController {
     public ResponseEntity<Boolean> updateMachineErrorStatus(@PathVariable Integer id) {
         machineService.updateMachineErrorStatus(id);
         return ResponseEntity.ok(true);
+    }
+
+    @GetMapping("/owner/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<List<MachineDto>> getMachinesByOwnerId(@PathVariable Integer id) {
+        return ResponseEntity.ok(machineService.getMachinesByOwnerId(id));
+    }
+
+    @GetMapping("/owner/current")
+    @PreAuthorize("hasAnyRole('ROLE_OWNER')")
+    public ResponseEntity<List<MachineDto>> getMachinesByCurrentOwner(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(machineService.getMachinesForCurrentOwner(userDetails.getUsername()));
     }
 }

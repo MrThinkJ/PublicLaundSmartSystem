@@ -2,13 +2,13 @@ package com.c1se22.publiclaundsmartsystem.service.impl;
 
 import com.c1se22.publiclaundsmartsystem.entity.UsageHistory;
 import com.c1se22.publiclaundsmartsystem.entity.User;
-import com.c1se22.publiclaundsmartsystem.payload.FirebaseMachine;
+import com.c1se22.publiclaundsmartsystem.payload.internal.FirebaseMachine;
 import com.c1se22.publiclaundsmartsystem.entity.Location;
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
-import com.c1se22.publiclaundsmartsystem.payload.MachineAndTimeDto;
-import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.MachineAndTimeDto;
+import com.c1se22.publiclaundsmartsystem.payload.request.MachineDto;
 import com.c1se22.publiclaundsmartsystem.repository.LocationRepository;
 import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UsageHistoryRepository;
@@ -144,6 +144,20 @@ public class MachineServiceImpl implements MachineService{
         List<Integer> machineIds = machines.stream().map(Machine::getId).toList();
         List<UsageHistory> usageHistories = usageHistoryRepository.findByCurrentUsedMachineIdsAndUserId(machineIds, user.getId());
         return usageHistories.stream().map(usageHistory -> mapToMachineAndTimeDto(usageHistory.getMachine(), usageHistory)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MachineDto> getMachinesByOwnerId(Integer id) {
+        User user = userRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("User", "id", id.toString()));
+        return machineRepository.findMachinesByOwnerId(user.getId()).stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MachineDto> getMachinesForCurrentOwner(String username) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(() ->
+                new ResourceNotFoundException("User", "username", username));
+        return machineRepository.findMachinesByOwnerId(user.getId()).stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.service;
 
-import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
-import com.c1se22.publiclaundsmartsystem.payload.UserUsageDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.UsageHistoryDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.UserUsageDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

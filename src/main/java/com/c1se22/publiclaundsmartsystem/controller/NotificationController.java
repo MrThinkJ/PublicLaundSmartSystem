@@ -1,6 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
-import com.c1se22.publiclaundsmartsystem.payload.NotificationDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.NotificationDto;
 import com.c1se22.publiclaundsmartsystem.service.NotificationService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController("/api/notifications")
+@RestController
+@RequestMapping("/api/notifications")
 @AllArgsConstructor
 public class NotificationController {
     NotificationService notificationService;
-
     @GetMapping("/{id}")
     public ResponseEntity<NotificationDto> getNotificationById(@PathVariable Integer id) {
         return ResponseEntity.ok(notificationService.getNotificationById(id));
@@ -36,6 +36,12 @@ public class NotificationController {
     public ResponseEntity<List<NotificationDto>> getReadNotifications(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return ResponseEntity.ok(notificationService.getReadNotificationsByUser(userDetails.getUsername()));
+    }
+
+    @PostMapping("/test")
+    public ResponseEntity<Boolean> test(){
+        notificationService.sendNotification(2, "Test Notification");
+        return ResponseEntity.ok(true);
     }
 
     @PatchMapping("/user/mark/{id}")

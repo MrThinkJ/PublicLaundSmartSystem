@@ -1,6 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.service;
 
-import com.c1se22.publiclaundsmartsystem.payload.NotificationDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.NotificationDto;
 
 import java.util.List;
 
@@ -12,4 +12,5 @@ public interface NotificationService {
     void markNotificationAsRead(Integer notificationId);
     void markAllNotificationsAsRead(String username);
     void sendNotification(Integer toUserId, String message);
+    void sendTestNotification();
 }

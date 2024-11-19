@@ -18,4 +18,6 @@ public interface MachineRepository extends JpaRepository<Machine, Integer> {
     List<Machine> findMachinesAreBeingUsedByUser(@Param("userId") Integer userId);
     @Query(value = "select m from Machine m join Reservation r on m.id = r.machine.id where r.user.id = :userId and r.status = 'PENDING'")
     Optional<Machine> findMachineAreBeingReservedByUser(@Param("userId") Integer userId);
+    @Query(value = "select m from Machine m where m.user.id = :ownerId")
+    List<Machine> findMachinesByOwnerId(@Param("ownerId") Integer ownerId);
 }

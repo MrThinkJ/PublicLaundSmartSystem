@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.repository;
 
+import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.entity.UsageHistory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,4 +29,16 @@ public interface UsageHistoryRepository extends JpaRepository<UsageHistory, Inte
     Long countByStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
     @Query("SELECT u FROM UsageHistory u WHERE u.machine.id IN :machineIds AND u.user.id = :userId AND u.status = 'IN_PROGRESS'")
     List<UsageHistory> findByCurrentUsedMachineIdsAndUserId(List<Integer> machineIds, Integer userId);
+    @Query("SELECT SUM(u.cost) FROM UsageHistory u WHERE u.machine IN :machines")
+    BigDecimal sumCostByMachines(@Param("machines") List<Machine> machines);
+    @Query("SELECT SUM(u.cost) FROM UsageHistory u WHERE u.machine IN :machines AND u.startTime BETWEEN :start AND :end")
+    BigDecimal sumCostByMachineInAndStartTimeBetween(
+            @Param("machines") List<Machine> machines,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+    @Query("SELECT COUNT(u) FROM UsageHistory u WHERE u.machine IN :machines AND u.startTime BETWEEN :start AND :end")
+    Integer countByMachineInAndStartTimeBetween(
+            @Param("machines") List<Machine> machines,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 }

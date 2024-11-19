@@ -3,7 +3,7 @@ package com.c1se22.publiclaundsmartsystem.service.impl;
 import com.c1se22.publiclaundsmartsystem.entity.Transaction;
 import com.c1se22.publiclaundsmartsystem.enums.TransactionStatus;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
-import com.c1se22.publiclaundsmartsystem.payload.TransactionDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.TransactionDto;
 import com.c1se22.publiclaundsmartsystem.repository.TransactionRepository;
 import com.c1se22.publiclaundsmartsystem.service.TransactionService;
 import lombok.AllArgsConstructor;

@@ -1,9 +1,9 @@
 package com.c1se22.publiclaundsmartsystem.service;
 
-import com.c1se22.publiclaundsmartsystem.payload.LoginDto;
-import com.c1se22.publiclaundsmartsystem.payload.LoginResponse;
-import com.c1se22.publiclaundsmartsystem.payload.RegisterDto;
-import com.c1se22.publiclaundsmartsystem.payload.UserDto;
+import com.c1se22.publiclaundsmartsystem.payload.request.LoginDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.LoginResponse;
+import com.c1se22.publiclaundsmartsystem.payload.request.RegisterDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.UserDto;
 
 public interface AuthService {
     LoginResponse login(LoginDto loginDto);

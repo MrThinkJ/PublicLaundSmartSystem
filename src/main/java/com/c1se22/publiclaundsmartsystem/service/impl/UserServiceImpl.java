@@ -2,7 +2,7 @@ package com.c1se22.publiclaundsmartsystem.service.impl;
 
 import com.c1se22.publiclaundsmartsystem.entity.User;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
-import com.c1se22.publiclaundsmartsystem.payload.UserDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.UserDto;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.service.UserService;
 import lombok.AllArgsConstructor;

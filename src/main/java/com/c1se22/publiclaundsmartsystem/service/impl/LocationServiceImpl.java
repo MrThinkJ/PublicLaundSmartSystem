@@ -3,9 +3,9 @@ package com.c1se22.publiclaundsmartsystem.service.impl;
 import com.c1se22.publiclaundsmartsystem.entity.Location;
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
-import com.c1se22.publiclaundsmartsystem.payload.LocationDetailsDto;
-import com.c1se22.publiclaundsmartsystem.payload.LocationSummaryDto;
-import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.LocationDetailsDto;
+import com.c1se22.publiclaundsmartsystem.payload.request.LocationSummaryDto;
+import com.c1se22.publiclaundsmartsystem.payload.request.MachineDto;
 import com.c1se22.publiclaundsmartsystem.repository.LocationRepository;
 import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.service.LocationService;
@@ -90,6 +90,9 @@ public class LocationServiceImpl implements LocationService {
                 .lat(location.getLat())
                 .lng(location.getLng())
                 .machineCount(location.getMachines().size())
+                .city(location.getCity())
+                .district(location.getDistrict())
+                .ward(location.getWard())
                 .machines(location.getMachines().stream().map(this::mapToMachineDto).toList())
                 .build();
     }
