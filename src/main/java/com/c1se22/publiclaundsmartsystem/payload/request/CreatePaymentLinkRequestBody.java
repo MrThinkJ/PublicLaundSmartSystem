@@ -18,6 +18,4 @@ public class CreatePaymentLinkRequestBody {
     @NotNull(message = "Price is required")
     @Min(value = 0, message = "Price must be a positive number")
     private int price;
-    @NotNull(message = "User ID is required")
-    private Integer userId;
 }

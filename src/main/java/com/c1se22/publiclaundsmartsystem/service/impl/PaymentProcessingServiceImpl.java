@@ -15,6 +15,9 @@ import com.c1se22.publiclaundsmartsystem.service.PaymentProcessingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import vn.payos.PayOS;
 import vn.payos.type.*;
@@ -33,8 +36,10 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
     NotificationService notificationService;
     @Override
     public CheckoutResponseDto createPaymentLink(CreatePaymentLinkRequestBody requestBody) {
-        User user = userRepository.findById(requestBody.getUserId()).orElseThrow(() ->
-                new ResourceNotFoundException("User", "id", requestBody.getUserId().toString()));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        User user = userRepository.findByUsernameOrEmail(userDetails.getUsername(), userDetails.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", userDetails.getUsername()));
         try {
             final String productName = requestBody.getProductName();
             final String description = requestBody.getDescription();
@@ -127,6 +132,9 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
             WebhookData data = payOS.verifyPaymentWebhookData(webhookBody);
             if (webhookBody.getSuccess()){
                 Transaction transaction = transactionRepository.findByPaymentId(data.getPaymentLinkId());
+                if (transaction == null){
+                    return;
+                }
                 transaction.setStatus(TransactionStatus.COMPLETED);
                 transactionRepository.save(transaction);
                 User user = transaction.getUser();

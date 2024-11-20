@@ -18,7 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-//@EnableMethodSecurity
+@EnableMethodSecurity
 @AllArgsConstructor
 public class SecurityConfig {
     JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -38,7 +38,9 @@ public class SecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable).cors(Customizer.withDefaults());
 
         httpSecurity.authorizeHttpRequests(authorize ->
-                        authorize.requestMatchers("/api/auth/**", "/api/password/**").permitAll()
+                        authorize.requestMatchers("/api/auth/**",
+                                        "/api/password/**",
+                                        "/api/payments/**").permitAll()
                                 .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
