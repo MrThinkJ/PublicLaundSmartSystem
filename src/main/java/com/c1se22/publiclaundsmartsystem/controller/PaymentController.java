@@ -7,6 +7,7 @@ import com.c1se22.publiclaundsmartsystem.service.PaymentProcessingService;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -18,6 +19,7 @@ public class PaymentController {
     PaymentProcessingService paymentProcessingService;
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<CheckoutResponseDto> createPaymentLink(@RequestBody CreatePaymentLinkRequestBody
                                                                              createPaymentLinkRequestBody) {
         return ResponseEntity.ok(paymentProcessingService.createPaymentLink(createPaymentLinkRequestBody));
