@@ -1,10 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Set;
 
@@ -14,15 +11,26 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Location {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "location_id")
     private Integer id;
-    @Column(name = "location_name", nullable = false)
+    @Column(name = "location_name")
     private String name;
+    @Column(name = "city")
+    private String city;
+    @Column(name = "district")
+    private String district;
+    @Column(name = "ward")
+    private String ward;
     @Column(name = "address", nullable = false)
     private String address;
+    @Column(name = "lng")
+    private Double lng;
+    @Column(name = "lat")
+    private Double lat;
     @OneToMany(mappedBy = "location")
     private Set<Machine> machines;
 }

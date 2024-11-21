@@ -4,6 +4,9 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 application-dev.properties
+firebase_key.json
+logs/
+
 
 ### STS ###
 .apt_generated

@@ -1,10 +1,14 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
 import com.c1se22.publiclaundsmartsystem.enums.TransactionStatus;
-import com.c1se22.publiclaundsmartsystem.payload.TransactionDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.TransactionDto;
 import com.c1se22.publiclaundsmartsystem.service.TransactionService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +19,7 @@ import java.util.List;
 public class TransactionController {
     TransactionService transactionService;
     @GetMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<List<TransactionDto>> getAllTransactions() {
         return ResponseEntity.ok(transactionService.getAllTransactions());
     }
@@ -25,22 +30,32 @@ public class TransactionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TransactionDto> updateTransaction(@PathVariable Integer id, @RequestBody TransactionDto transactionDto) {
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<TransactionDto> updateTransaction(@PathVariable Integer id, @RequestBody @Valid TransactionDto transactionDto) {
         return ResponseEntity.ok(transactionService.updateTransaction(id, transactionDto));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteTransaction(@PathVariable Integer id) {
         transactionService.deleteTransaction(id);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<List<TransactionDto>> getTransactionsByUserId(@PathVariable Integer userId) {
         return ResponseEntity.ok(transactionService.getTransactionsByUserId(userId));
     }
 
+    @GetMapping("/user")
+    public ResponseEntity<List<TransactionDto>> getTransactions(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(transactionService.getTransactionsByUsername(userDetails.getUsername()));
+    }
+
     @GetMapping("/status/{status}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<List<TransactionDto>> getTransactionsByStatus(@PathVariable TransactionStatus status) {
         return ResponseEntity.ok(transactionService.getTransactionsByStatus(status));
     }

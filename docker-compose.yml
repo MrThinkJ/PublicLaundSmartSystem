@@ -1,18 +1,23 @@
 services:
   postgresdb:
-      image: postgres
-      container_name: postgresdb
-      hostname: postgresdb
-      restart: always
-      ports:
-        - 5432:5432
-      environment:
-        - POSTGRES_PASSWORD=28122003
-        - POSTGRES_DB=laundry_system_db
-      volumes:
-        - ./postgresql/laundry_system_db:/var/lib/postgresql/data
-      networks:
-        shared_net:
+    image: postgres
+    container_name: postgresdb
+    hostname: postgresdb
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+      - POSTGRES_PASSWORD=28122003
+      - POSTGRES_DB=laundry_system_db
+      - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    volumes:
+      - /var/lib/postgresql/data:/var/lib/postgresql/data
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
+    networks:
+      shared_net:
   laundry_system:
     container_name: laundry_system
     build:
@@ -24,6 +29,7 @@ services:
     ports:
       - 8080:8080
     environment:
+      - TZ=Asia/Ho_Chi_Minh
       - POSTGRESQL_HOST=postgresdb
       - POSTGRESQL_PORT=5432
       - POSTGRESQL_DB=laundry_system_db
@@ -32,7 +38,18 @@ services:
     volumes:
       - /opt/app/bin:/app/bin
       - /opt/app/uploads:/app/uploads
+      - maven-repo:/root/.m2
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
     networks:
       shared_net:
 networks:
   shared_net:
+
+volumes:
+  maven-repo:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/maven-repo
