@@ -10,6 +10,7 @@ import com.c1se22.publiclaundsmartsystem.repository.UsageHistoryRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.service.OwnerService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class OwnerServiceImpl implements OwnerService{
     UserRepository userRepository;
     RoleRepository roleRepository;
@@ -33,6 +35,7 @@ public class OwnerServiceImpl implements OwnerService{
         Role role = roleRepository.findByName("ROLE_OWNER");
         user.getRoles().add(role);
         userRepository.save(user);
+        log.info("User {} is updated to owner", username);
     }
 
     @Override

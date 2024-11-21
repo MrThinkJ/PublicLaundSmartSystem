@@ -12,5 +12,6 @@ public interface NotificationService {
     void markNotificationAsRead(Integer notificationId);
     void markAllNotificationsAsRead(String username);
     void sendNotification(Integer toUserId, String message);
+    void sendNotificationToAdminTopic(String message);
     void sendTestNotification();
 }

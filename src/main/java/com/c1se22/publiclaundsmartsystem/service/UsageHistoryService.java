@@ -10,6 +10,7 @@ import java.util.Map;
 
 public interface UsageHistoryService {
     List<UsageHistoryDto> getAllUsageHistories();
+    List<UsageHistoryDto> getUsageHistoriesByUsername(String username);
     UsageHistoryDto getUsageHistoryById(Integer id);
     void createUsageHistory(UsageHistoryDto usageHistoryDto);
     void completeUsageHistory(Integer id);

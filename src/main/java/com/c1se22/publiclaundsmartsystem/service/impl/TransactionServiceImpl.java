@@ -7,6 +7,7 @@ import com.c1se22.publiclaundsmartsystem.payload.response.TransactionDto;
 import com.c1se22.publiclaundsmartsystem.repository.TransactionRepository;
 import com.c1se22.publiclaundsmartsystem.service.TransactionService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class TransactionServiceImpl implements TransactionService {
     TransactionRepository transactionRepository;
     @Override

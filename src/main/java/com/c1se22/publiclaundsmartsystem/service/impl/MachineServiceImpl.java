@@ -16,6 +16,7 @@ import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
 import com.google.firebase.database.*;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @AllArgsConstructor
 public class MachineServiceImpl implements MachineService{
     MachineRepository machineRepository;
@@ -37,8 +39,6 @@ public class MachineServiceImpl implements MachineService{
     UsageHistoryRepository usageHistoryRepository;
     UserRepository userRepository;
     FirebaseDatabase firebaseDatabase;
-    private static final Logger logger = LoggerFactory.getLogger(MachineServiceImpl.class);
-
     @Override
     public List<MachineDto> getAllMachines() {
         return machineRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
@@ -94,6 +94,7 @@ public class MachineServiceImpl implements MachineService{
                 .duration(0)
                 .build();
         firebaseDatabase.getReference("machines").child(firebaseMachine.getId().toString()).setValueAsync(firebaseMachine);
+        log.info("Machine {} has been added", newMachine.getId());
         return mapToDto(newMachine);
     }
 
@@ -115,6 +116,8 @@ public class MachineServiceImpl implements MachineService{
         Machine machine = machineRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Machine", "id", id.toString()));
         machineRepository.delete(machine);
+        firebaseDatabase.getReference("machines").child(id.toString()).removeValueAsync();
+        log.info("Machine {} has been deleted", id);
     }
 
     @Override
@@ -126,6 +129,7 @@ public class MachineServiceImpl implements MachineService{
         machine.setStatus(machineStatus);
         Machine updatedMachine = machineRepository.save(machine);
         firebaseDatabase.getReference("machines").child(id.toString()).child("status").setValueAsync(status);
+        log.info("Machine {} status has been updated to {}", id, status);
         return mapToDto(updatedMachine);
     }
 
@@ -185,6 +189,7 @@ public class MachineServiceImpl implements MachineService{
             machine.setStatus(machineStatus);
             machineRepository.save(machine);
         }
+        log.info("Machine {} status has been updated to ERROR", id);
     }
 
     private MachineDto mapToDto(Machine machine) {
