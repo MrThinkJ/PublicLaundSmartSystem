@@ -13,6 +13,7 @@ public interface ReservationService {
     ReservationResponseDto getReservationById(Integer reservationId);
     List<ReservationResponseDto> getReservationsByUserId(Integer userId);
     List<ReservationResponseDto> getReservationsByMachineId(Integer machineId);
+    List<ReservationResponseDto> getReservationByUsername(String username);
     ReservationResponseDto createReservation(String username, ReservationCreateDto reservationDto);
     ReservationResponseDto updateReservation(Integer reservationId, ReservationDto reservationDto);
     ReservationResponseDto completeReservation(String username);

@@ -4,4 +4,5 @@ import com.c1se22.publiclaundsmartsystem.payload.internal.PushNotificationReques
 
 public interface PushNotificationService {
     void sendPushNotificationToToken(PushNotificationRequestDto pushNotificationRequestDto);
+    void sendPushNotificationToTopic(PushNotificationRequestDto pushNotificationRequestDto);
 }

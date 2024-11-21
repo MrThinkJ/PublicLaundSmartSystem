@@ -41,4 +41,5 @@ public interface UsageHistoryRepository extends JpaRepository<UsageHistory, Inte
             @Param("machines") List<Machine> machines,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+    List<UsageHistory> findAllByUserUsername(String username);
 }

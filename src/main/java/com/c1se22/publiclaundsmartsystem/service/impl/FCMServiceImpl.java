@@ -9,6 +9,7 @@ import com.google.firebase.messaging.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -20,8 +21,8 @@ import java.util.concurrent.ExecutionException;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class FCMServiceImpl implements FCMService{
-    private final Logger logger = LoggerFactory.getLogger(PushNotificationServiceImpl.class);
     FirebaseMessaging firebaseMessaging;
     UserDeviceService userDeviceService;
 
@@ -31,14 +32,14 @@ public class FCMServiceImpl implements FCMService{
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String jsonOutput = gson.toJson(message);
         String response = sendAndGetResponse(message);
-        logger.info("Sent message with data. Topic: " + request.getTopic() + ", " + response+ " msg "+jsonOutput);
+        log.info("Sent message with data. Topic: " + request.getTopic() + ", " + response+ " msg "+jsonOutput);
     }
 
     @Override
     public void sendMessageWithoutData(PushNotificationRequestDto request){
         Message message = getPreconfiguredMessageWithoutData(request);
         String response = sendAndGetResponse(message);
-        logger.info("Sent message without data. Topic: " + request.getTopic() + ", " + response);
+        log.info("Sent message without data. Topic: " + request.getTopic() + ", " + response);
     }
 
     @Override
@@ -47,7 +48,7 @@ public class FCMServiceImpl implements FCMService{
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String jsonOutput = gson.toJson(message);
         String response = sendAndGetResponse(message);
-        logger.info("Sent message to token. Device token: " + request.getToken() + ", " + response+ " msg "+jsonOutput);
+        log.info("Sent message to token. Device token: " + request.getToken() + ", " + response+ " msg "+jsonOutput);
     }
 
     @Override
@@ -56,7 +57,7 @@ public class FCMServiceImpl implements FCMService{
         try {
             messageRes = firebaseMessaging.sendAsync(message).get();
         } catch (InterruptedException | ExecutionException e) {
-            logger.error("Error sending message: " + e.getMessage());
+            log.error("Error sending message: " + e.getMessage());
             throw new APIException(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR);
         }
         return messageRes;

@@ -71,4 +71,10 @@ public class ReservationController {
     public ResponseEntity<List<ReservationResponseDto>> getReservationsForPeriod(@RequestParam LocalDate start, @RequestParam LocalDate end){
         return ResponseEntity.ok(reservationService.getReservationsForPeriod(start, end));
     }
+
+    @GetMapping("/user")
+    public ResponseEntity<List<ReservationResponseDto>> getReservationByUsername(Authentication authentication){
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(reservationService.getReservationByUsername(userDetails.getUsername()));
+    }
 }

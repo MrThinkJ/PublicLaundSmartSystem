@@ -4,6 +4,7 @@ import com.c1se22.publiclaundsmartsystem.payload.response.NotificationDto;
 import com.c1se22.publiclaundsmartsystem.service.NotificationService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -54,6 +55,13 @@ public class NotificationController {
     public ResponseEntity<Boolean> markAllNotificationsAsRead(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         notificationService.markAllNotificationsAsRead(userDetails.getUsername());
+        return ResponseEntity.ok(true);
+    }
+
+    @PostMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Boolean> sendNotification(@RequestParam String message) {
+        notificationService.sendNotificationToAdminTopic( message);
         return ResponseEntity.ok(true);
     }
 }

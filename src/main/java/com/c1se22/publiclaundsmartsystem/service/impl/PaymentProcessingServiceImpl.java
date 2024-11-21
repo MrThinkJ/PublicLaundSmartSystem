@@ -21,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import vn.payos.PayOS;
 import vn.payos.type.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class PaymentProcessingServiceImpl implements PaymentProcessingService {
     PayOS payOS;
     TransactionRepository transactionRepository;
@@ -36,6 +38,7 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
     NotificationService notificationService;
     @Override
     public CheckoutResponseDto createPaymentLink(CreatePaymentLinkRequestBody requestBody) {
+        log.info("Creating payment link for amount: {}", requestBody.getPrice());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User user = userRepository.findByUsernameOrEmail(userDetails.getUsername(), userDetails.getUsername())
@@ -64,6 +67,7 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                     .paymentId(data.getPaymentLinkId())
                     .build();
             transactionRepository.save(transaction);
+            log.info("Successfully created payment link for user: {}", userDetails.getUsername());
             return CheckoutResponseDto.builder()
                     .accountNumber(data.getAccountNumber())
                     .accountName(data.getAccountName())
@@ -75,6 +79,7 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                     .status(data.getStatus())
                     .build();
         } catch (Exception e) {
+            log.error("Payment link creation failed: {}", e.getMessage(), e);
             throw new PaymentProcessingException("Failed to create payment link. Error: "+e.getMessage());
         }
     }
@@ -140,14 +145,17 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                 User user = transaction.getUser();
                 user.setBalance(user.getBalance().add(BigDecimal.valueOf(data.getAmount())));
                 userRepository.save(user);
+                log.info("Successfully handled payos transfer for user: {}", user.getUsername());
             } else{
                 Transaction transaction = transactionRepository.findByPaymentId(data.getPaymentLinkId());
                 transaction.setStatus(TransactionStatus.FAILED);
                 transactionRepository.save(transaction);
                 notificationService.sendNotification(transaction.getUser().getId(),
                         "Your payment has failed. Please try again.");
+                log.error("Failed to handle payos transfer for payment link: {}", data.getPaymentLinkId());
             }
         } catch (Exception e){
+            log.error("Failed to handle payos transfer: {}", e.getMessage(), e);
             throw new PaymentProcessingException("Failed to handle payos transfer. Error: "+e.getMessage());
         }
     }

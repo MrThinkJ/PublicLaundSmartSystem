@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.configuration;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,17 +12,17 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Configuration
 @EnableScheduling
+@Slf4j
 public class SchedulingConfig {
     @Value("${spring.task.scheduling.pool.size}")
     private int poolSize;
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Bean
     public TaskScheduler taskScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setPoolSize(poolSize);
         scheduler.setThreadNamePrefix("laundry-task-");
         scheduler.setErrorHandler(throwable ->
-                logger.error("Scheduled task error", throwable));
+                log.error("Scheduled task error", throwable));
         return scheduler;
     }
 }

@@ -16,6 +16,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -27,13 +28,13 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class NotificationServiceImpl implements NotificationService {
     UserRepository userRepository;
     UserDeviceService userDeviceService;
     FirebaseMessaging firebaseMessaging;
     NotificationRepository notificationRepository;
     PushNotificationService pushNotificationService;
-    private final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
     @Override
     public NotificationDto getNotificationById(Integer id) {
@@ -92,7 +93,7 @@ public class NotificationServiceImpl implements NotificationService {
         User toUser = userRepository.findById(toUserId).orElseThrow(
                 () -> new ResourceNotFoundException("User", "id", toUserId.toString()));
         List<String> deviceTokens = userDeviceService.getActiveUserToken(toUserId);
-        logger.info("Sending notification to user: "+toUser.getUsername());
+        log.info("Sending notification to user: "+toUser.getUsername());
         deviceTokens.forEach(token ->{
             try{
                 PushNotificationRequestDto request = PushNotificationRequestDto.builder()
@@ -101,7 +102,7 @@ public class NotificationServiceImpl implements NotificationService {
                         .token(token)
                         .build();
                 pushNotificationService.sendPushNotificationToToken(request);
-                logger.info("Notification sent to device: "+token);
+                log.info("Notification sent to device: "+token);
                 Notification notification = Notification.builder()
                         .user(toUser)
                         .message(message)
@@ -110,13 +111,23 @@ public class NotificationServiceImpl implements NotificationService {
                         .title("System Notification")
                         .build();
                 notificationRepository.save(notification);
-                logger.info("Notification saved to database");
+                log.info("Notification saved to database");
             } catch (Exception e){
-                logger.error("Error sending notification to device: "+token);
-                logger.error(e.getMessage());
+                log.error("Error sending notification to device: "+token);
+                log.error(e.getMessage());
                 throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.INTERNAL_ERROR);
             }
         });
+    }
+
+    @Override
+    public void sendNotificationToAdminTopic(String message) {
+        PushNotificationRequestDto request = PushNotificationRequestDto.builder()
+                .title("System Notification")
+                .message(message)
+                .topic("admin")
+                .build();
+        pushNotificationService.sendPushNotificationToTopic(request);
     }
 
     @Override
@@ -127,7 +138,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
         try{
             String id = firebaseMessaging.send(msg);
-            logger.info("Message sent with ID: "+id);
+            log.info("Message sent with ID: "+id);
         } catch (FirebaseMessagingException e) {
             e.printStackTrace();
         }

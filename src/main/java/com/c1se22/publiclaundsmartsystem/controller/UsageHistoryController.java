@@ -6,6 +6,8 @@ import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -89,5 +91,11 @@ public class UsageHistoryController {
         LocalDateTime startDate = LocalDateTime.parse(start);
         LocalDateTime endDate = LocalDateTime.parse(end);
         return ResponseEntity.ok(usageHistoryService.getTotalUsageCount(startDate, endDate));
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<List<UsageHistoryDto>> getUsageHistoriesByUsername(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(usageHistoryService.getUsageHistoriesByUsername(userDetails.getUsername()));
     }
 }

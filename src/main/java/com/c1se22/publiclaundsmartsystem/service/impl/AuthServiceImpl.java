@@ -17,6 +17,7 @@ import com.c1se22.publiclaundsmartsystem.security.JwtProvider;
 import com.c1se22.publiclaundsmartsystem.service.AuthService;
 import com.c1se22.publiclaundsmartsystem.service.UserBanService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,6 +33,7 @@ import java.util.Set;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class AuthServiceImpl implements AuthService {
     UserRepository userRepository;
     RoleRepository roleRepository;
@@ -95,6 +97,7 @@ public class AuthServiceImpl implements AuthService {
                 .cancellationCount(0)
                 .build();
         userBanHistoryRepository.save(userBanHistory);
+        log.info("User registered successfully: {}", registerDto.getUsername());
         return true;
     }
 
