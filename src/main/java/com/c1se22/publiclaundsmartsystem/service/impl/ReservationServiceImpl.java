@@ -1,9 +1,16 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
 import com.c1se22.publiclaundsmartsystem.entity.*;
+import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
 import com.c1se22.publiclaundsmartsystem.enums.ReservationStatus;
+import com.c1se22.publiclaundsmartsystem.event.ReservationCreatedEvent;
+import com.c1se22.publiclaundsmartsystem.exception.APIException;
 import com.c1se22.publiclaundsmartsystem.exception.InsufficientBalanceException;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
+import com.c1se22.publiclaundsmartsystem.payload.request.ReservationCreateDto;
+import com.c1se22.publiclaundsmartsystem.payload.internal.ReservationDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.ReservationResponseDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.UsageHistoryDto;
 import com.c1se22.publiclaundsmartsystem.payload.MachineInUseDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationResponseDto;
@@ -12,10 +19,12 @@ import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.repository.ReservationRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.repository.WashingTypeRepository;
-import com.c1se22.publiclaundsmartsystem.service.MachineService;
-import com.c1se22.publiclaundsmartsystem.service.ReservationService;
-import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
+import com.c1se22.publiclaundsmartsystem.service.*;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -26,6 +35,7 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ReservationServiceImpl implements ReservationService {
     ReservationRepository reservationRepository;
     UserRepository userRepository;
@@ -33,6 +43,8 @@ public class ReservationServiceImpl implements ReservationService {
     WashingTypeRepository washingTypeRepository;
     MachineService machineService;
     UsageHistoryService usageHistoryService;
+    EventService eventService;
+    UserBanService userBanService;
 
     @Override
     public List<ReservationResponseDto> getAllReservations() {
@@ -44,7 +56,7 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public ReservationResponseDto getReservationById(Integer reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
-                () -> new ResourceNotFoundException("Reservation", "reservationId", reservationId)
+                () -> new ResourceNotFoundException("Reservation", "reservationId", reservationId.toString())
         );
         return mapToResponseDto(reservation);
     }
@@ -72,53 +84,77 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public ReservationResponseDto createReservation(ReservationDto reservationDto) {
-        User user = userRepository.findById(reservationDto.getUserId()).orElseThrow(
-                () -> new ResourceNotFoundException("User", "userId", reservationDto.getUserId())
+    public List<ReservationResponseDto> getReservationByUsername(String username) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
+                () -> new ResourceNotFoundException("User", "username", username)
         );
-        Machine machine = machineRepository.findById(reservationDto.getMachineId()).orElseThrow(
-                () -> new ResourceNotFoundException("Machine", "machineId", reservationDto.getMachineId())
-        );
-        if (!machine.getStatus().name().equals("AVAILABLE")) {
-            return null;
+        List<Reservation> reservations = reservationRepository.findByUserId(user.getId());
+        return reservations.stream()
+                .map(this::mapToResponseDto)
+                .toList();
+    }
+
+    @Override
+    public ReservationResponseDto createReservation(String username, ReservationCreateDto reservationDto) {
+        log.info("Creating reservation for user: {}, machine ID: {}",
+            username, reservationDto.getMachineId());
+        try {
+            User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
+                    () -> new ResourceNotFoundException("User", "username", username)
+            );
+            if (reservationRepository.findCurrentPendingReservationByUser(user.getId())) {
+                throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.USER_ALREADY_HAS_PENDING_RESERVATION, user.getId());
+            }
+            Machine machine = machineRepository.findById(reservationDto.getMachineId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Machine", "machineId", reservationDto.getMachineId().toString())
+            );
+            if (!machine.getStatus().name().equals("AVAILABLE")) {
+                throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.MACHINE_NOT_AVAILABLE, machine.getId());
+            }
+            WashingType washingType = washingTypeRepository.findById(reservationDto.getWashingTypeId()).orElseThrow(
+                    () -> new ResourceNotFoundException("WashingType", "washingTypeId", reservationDto.getWashingTypeId().toString())
+            );
+
+            BigDecimal userBalance = user.getBalance();
+            BigDecimal washingTypeCost = washingType.getDefaultPrice();
+
+            if (userBalance.compareTo(washingTypeCost) < 0) {
+                throw new InsufficientBalanceException(washingTypeCost, userBalance);
+            }
+
+            Reservation reservation = Reservation.builder()
+                    .startTime(LocalDateTime.now())
+                    .endTime(LocalDateTime.now().plusMinutes(15))
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .status(ReservationStatus.PENDING)
+                    .user(user)
+                    .machine(machine)
+                    .washingType(washingType)
+                    .build();
+            machineService.updateMachineStatus(machine.getId(), "RESERVED");
+            eventService.publishEvent(new ReservationCreatedEvent(reservation));
+            log.info("Successfully created reservation with ID: {}", reservation.getId());
+            return mapToResponseDto(reservationRepository.save(reservation));
+        } catch (Exception e) {
+            log.error("Failed to create reservation for user {}: {}", username, e.getMessage(), e);
+            throw e;
         }
-        WashingType washingType = washingTypeRepository.findById(reservationDto.getWashingTypeId()).orElseThrow(
-                () -> new ResourceNotFoundException("WashingType", "washingTypeId", reservationDto.getWashingTypeId())
-        );
-        // Check user balance
-        BigDecimal userBalance = user.getBalance();
-        BigDecimal washingTypeCost = washingType.getDefaultPrice();
-        
-        if (userBalance.compareTo(washingTypeCost) < 0) {
-            throw new InsufficientBalanceException("User does not have sufficient balance for this washing type.");
-        }
-        Reservation reservation = Reservation.builder()
-                .startTime(LocalDateTime.now())
-                .endTime(LocalDateTime.now().plusMinutes(15))
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .status(ReservationStatus.PENDING)
-                .user(user)
-                .machine(machine)
-                .washingType(washingType)
-                .build();
-        machineService.updateMachineStatus(machine.getId(), "IN_USE");
-        return mapToResponseDto(reservationRepository.save(reservation));
     }
 
     @Override
     public ReservationResponseDto updateReservation(Integer reservationId, ReservationDto reservationDto) {
         User user = userRepository.findById(reservationDto.getUserId()).orElseThrow(
-                () -> new ResourceNotFoundException("User", "userId", reservationDto.getUserId())
+                () -> new ResourceNotFoundException("User", "userId", reservationDto.getUserId().toString())
         );
         Machine machine = machineRepository.findById(reservationDto.getMachineId()).orElseThrow(
-                () -> new ResourceNotFoundException("Machine", "machineId", reservationDto.getMachineId())
+                () -> new ResourceNotFoundException("Machine", "machineId", reservationDto.getMachineId().toString())
         );
         WashingType washingType = washingTypeRepository.findById(reservationDto.getWashingTypeId()).orElseThrow(
-                () -> new ResourceNotFoundException("WashingType", "washingTypeId", reservationDto.getWashingTypeId())
+                () -> new ResourceNotFoundException("WashingType", "washingTypeId", reservationDto.getWashingTypeId().toString())
         );
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
-                () -> new ResourceNotFoundException("Reservation", "reservationId", reservationId)
+                () -> new ResourceNotFoundException("Reservation", "reservationId", reservationId.toString())
         );
         reservation.setUser(user);
         reservation.setMachine(machine);
@@ -128,28 +164,46 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public ReservationResponseDto completeReservation(Integer reservationId) {
-        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
-                () -> new ResourceNotFoundException("Reservation", "reservationId", reservationId)
+    public ReservationResponseDto completeReservation(String username) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
+                () -> new ResourceNotFoundException("User", "username", username)
+        );
+        Reservation reservation = reservationRepository.getPendingReservationByUserId(user.getId()).orElseThrow(
+                () -> new APIException(HttpStatus.NOT_FOUND, ErrorCode.NO_PENDING_RESERVATION, user.getId())
         );
         reservation.setStatus(ReservationStatus.COMPLETED);
         reservation.setUpdatedAt(LocalDateTime.now());
 
-        // Save the updated reservation
         Reservation savedReservation = reservationRepository.save(reservation);
-        
+
         UsageHistoryDto usageHistoryDTO = UsageHistoryDto.builder()
                 .userId(savedReservation.getUser().getId())
                 .machineId(savedReservation.getMachine().getId())
                 .washingTypeId(savedReservation.getWashingType().getId())
                 .cost(savedReservation.getWashingType().getDefaultPrice())
                 .build();
+
         usageHistoryService.createUsageHistory(usageHistoryDTO);
-        // Update user balance
-        User user = savedReservation.getUser();
+        if (user.getBalance().compareTo(savedReservation.getWashingType().getDefaultPrice()) < 0) {
+            throw new InsufficientBalanceException(savedReservation.getWashingType().getDefaultPrice(), user.getBalance());
+        }
         user.setBalance(user.getBalance().subtract(savedReservation.getWashingType().getDefaultPrice()));
         userRepository.save(user);
+        Machine machine = savedReservation.getMachine();
+        machineService.updateMachineStatus(machine.getId(), "IN_USE");
+        log.info("Successfully completed reservation with ID: {}", savedReservation.getId());
         return mapToResponseDto(savedReservation);
+    }
+
+    @Override
+    public ReservationResponseDto getPendingReservationByUserId(String username) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
+                () -> new ResourceNotFoundException("User", "username", username)
+        );
+        Reservation reservation = reservationRepository.getPendingReservationByUserId(user.getId()).orElseThrow(
+                () -> new APIException(HttpStatus.NOT_FOUND, ErrorCode.NO_PENDING_RESERVATION, user.getId())
+        );
+        return mapToResponseDto(reservation);
     }
 
     @Override
@@ -163,25 +217,31 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public void cancelReservation(Integer reservationId) {
-        Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
-                () -> new ResourceNotFoundException("Reservation", "reservationId", reservationId)
+    public void cancelReservation(String username) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
+                () -> new ResourceNotFoundException("User", "username", username)
+        );
+        Reservation reservation = reservationRepository.getPendingReservationByUserId(user.getId()).orElseThrow(
+                () -> new APIException(HttpStatus.NOT_FOUND, ErrorCode.NO_PENDING_RESERVATION, user.getId())
         );
         reservation.setStatus(ReservationStatus.CANCELED);
         reservation.setUpdatedAt(LocalDateTime.now());
         Machine machine = reservation.getMachine();
         machineService.updateMachineStatus(machine.getId(), "AVAILABLE");
         reservationRepository.save(reservation);
+        userBanService.handleCancelReservation(user.getId());
+        log.info("Successfully canceled reservation with ID: {}", reservation.getId());
     }
 
     @Override
     public void deleteReservation(Integer reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId).orElseThrow(
-                () -> new ResourceNotFoundException("Reservation", "reservationId", reservationId)
+                () -> new ResourceNotFoundException("Reservation", "reservationId", reservationId.toString())
         );
         reservation.setStatus(ReservationStatus.ARCHIVED);
         reservation.setUpdatedAt(LocalDateTime.now());
         reservationRepository.save(reservation);
+        log.info("Successfully deleted reservation with ID: {}", reservation.getId());
     }
 
     @Override
@@ -213,7 +273,7 @@ public class ReservationServiceImpl implements ReservationService {
 
     private ReservationResponseDto mapToResponseDto(Reservation reservation) {
         return ReservationResponseDto.builder()
-                .reservationId(reservation.getReservationId())
+                .reservationId(reservation.getId())
                 .status(reservation.getStatus().name())
                 .userId(reservation.getUser().getId())
                 .machineId(reservation.getMachine().getId())
@@ -223,7 +283,7 @@ public class ReservationServiceImpl implements ReservationService {
 
     private ReservationDto mapToDto(Reservation reservation) {
         return ReservationDto.builder()
-                .reservationId(reservation.getReservationId())
+                .reservationId(reservation.getId())
                 .userId(reservation.getUser().getId())
                 .machineId(reservation.getMachine().getId())
                 .washingTypeId(reservation.getWashingType().getId())

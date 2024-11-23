@@ -4,8 +4,11 @@ import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.entity.UsageHistory;
 import com.c1se22.publiclaundsmartsystem.entity.User;
 import com.c1se22.publiclaundsmartsystem.entity.WashingType;
-import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
+import com.c1se22.publiclaundsmartsystem.enums.UsageHistoryStatus;
+import com.c1se22.publiclaundsmartsystem.event.WashingNearCompleteEvent;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
+import com.c1se22.publiclaundsmartsystem.payload.response.UsageHistoryDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.UserUsageDto;
 import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
 import com.c1se22.publiclaundsmartsystem.payload.UsageReportDto;
 import com.c1se22.publiclaundsmartsystem.payload.UserUsageDto;
@@ -13,9 +16,14 @@ import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UsageHistoryRepository;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.repository.WashingTypeRepository;
+import com.c1se22.publiclaundsmartsystem.service.EventService;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
 import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
+import com.google.firebase.database.FirebaseDatabase;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,62 +37,89 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class UsageHistoryServiceImpl implements UsageHistoryService {
     UsageHistoryRepository usageHistoryRepository;
     MachineRepository machineRepository;
     WashingTypeRepository washingTypeRepository;
     UserRepository userRepository;
     MachineService machineService;
+    EventService eventService;
+    FirebaseDatabase firebaseDatabase;
     @Override
     public List<UsageHistoryDto> getAllUsageHistories() {
         return usageHistoryRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
+    public List<UsageHistoryDto> getUsageHistoriesByUsername(String username) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
+                () -> new ResourceNotFoundException("User", "username", username)
+        );
+        return usageHistoryRepository.findAllByUserUsername(username)
+                .stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    @Override
     public UsageHistoryDto getUsageHistoryById(Integer id) {
         UsageHistory usageHistory = usageHistoryRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("UsageHistory", "id", id)
+                () -> new ResourceNotFoundException("UsageHistory", "id", id.toString())
         );
         return mapToDto(usageHistory);
     }
 
     @Override
     public void createUsageHistory(UsageHistoryDto usageHistoryDto) {
-        UsageHistory usageHistory = new UsageHistory();
-        usageHistory.setCost(usageHistoryDto.getCost());
-        usageHistory.setStartTime(LocalDateTime.now());
-        usageHistory.setEndTime(null);
-        Machine machine = machineRepository.findById(usageHistoryDto.getMachineId()).orElseThrow(
-                () -> new ResourceNotFoundException("Machine", "id", usageHistoryDto.getMachineId())    
-        );
-        WashingType washingType = washingTypeRepository.findById(usageHistoryDto.getWashingTypeId()).orElseThrow(   
-                () -> new ResourceNotFoundException("WashingType", "id", usageHistoryDto.getWashingTypeId())
-        );
-        User user = userRepository.findById(usageHistoryDto.getUserId()).orElseThrow(
-                () -> new ResourceNotFoundException("User", "id", usageHistoryDto.getUserId())
-        );
-        usageHistory.setMachine(machine);
-        usageHistory.setWashingType(washingType);
-        usageHistory.setUser(user);
-        UsageHistory newUsageHistory = usageHistoryRepository.save(usageHistory);
-        mapToDto(newUsageHistory);
+        log.info("Creating usage history for machine ID: {}, user ID: {}",
+            usageHistoryDto.getMachineId(), usageHistoryDto.getUserId());
+        try {
+            UsageHistory usageHistory = new UsageHistory();
+            usageHistory.setCost(usageHistoryDto.getCost());
+            usageHistory.setStartTime(LocalDateTime.now());
+
+            Machine machine = machineRepository.findById(usageHistoryDto.getMachineId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Machine", "id", usageHistoryDto.getMachineId().toString())
+            );
+
+            WashingType washingType = washingTypeRepository.findById(usageHistoryDto.getWashingTypeId()).orElseThrow(
+                    () -> new ResourceNotFoundException("WashingType", "id", usageHistoryDto.getWashingTypeId().toString())
+            );
+            usageHistory.setEndTime(usageHistory.getStartTime().plusMinutes(washingType.getDefaultDuration()));
+            User user = userRepository.findById(usageHistoryDto.getUserId()).orElseThrow(
+                    () -> new ResourceNotFoundException("User", "id", usageHistoryDto.getUserId().toString())
+            );
+
+            usageHistory.setMachine(machine);
+            usageHistory.setWashingType(washingType);
+            usageHistory.setUser(user);
+            usageHistory.setStatus(UsageHistoryStatus.IN_PROGRESS);
+            UsageHistory newUsageHistory = usageHistoryRepository.save(usageHistory);
+            firebaseDatabase.getReference("machines").child(machine.getId().toString()).child("duration")
+                    .setValueAsync(washingType.getDefaultDuration().toString());
+            eventService.publishEvent(new WashingNearCompleteEvent(newUsageHistory, washingType.getDefaultDuration()));
+            log.info("Successfully created usage history with ID: {}", newUsageHistory.getUsageId());
+        } catch (Exception e) {
+            log.error("Error creating usage history: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
     public void completeUsageHistory(Integer id) {
         UsageHistory usageHistory = usageHistoryRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("UsageHistory", "id", id)
+                () -> new ResourceNotFoundException("UsageHistory", "id", id.toString())
         );
-        usageHistory.setEndTime(LocalDateTime.now());
         Machine machine = usageHistory.getMachine();
         machineService.updateMachineStatus(machine.getId(), "AVAILABLE");
-        usageHistoryRepository.save(usageHistory);  
+        firebaseDatabase.getReference("machines").child(machine.getId().toString()).child("duration")
+                .setValueAsync(0);
+        usageHistoryRepository.save(usageHistory);
     }
 
     @Override
     public void deleteUsageHistory(Integer id) {
         UsageHistory usageHistory = usageHistoryRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("UsageHistory", "id", id)
+                () -> new ResourceNotFoundException("UsageHistory", "id", id.toString())
         );
         usageHistoryRepository.delete(usageHistory);
     }
@@ -103,7 +138,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
             Long count = (Long) result[1];
 
             WashingType washingType = washingTypeRepository.findById(washingTypeId)
-                .orElseThrow(() -> new ResourceNotFoundException("WashingType", "id", washingTypeId));
+                .orElseThrow(() -> new ResourceNotFoundException("WashingType", "id", washingTypeId.toString()));
 
             usageCountByWashingType.put(washingType.getTypeName(), count);
         }
@@ -117,9 +152,9 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         for (Object[] result : results) {
             Integer washingTypeId = (Integer) result[0];
             BigDecimal totalCost = (BigDecimal) result[1];
-            
+
             WashingType washingType = washingTypeRepository.findById(washingTypeId)
-                .orElseThrow(() -> new ResourceNotFoundException("WashingType", "id", washingTypeId));
+                .orElseThrow(() -> new ResourceNotFoundException("WashingType", "id", washingTypeId.toString()));
 
             revenueByWashingType.put(washingType.getTypeName(), totalCost);
         }
@@ -134,7 +169,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
             Integer userId = (Integer) result[0];
             Long count = (Long) result[1];
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId.toString()));
             return UserUsageDto.builder()
                     .userName(user.getUsername())
                     .usageCount(count)
@@ -152,7 +187,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
             Long count = (Long) result[1];
 
             User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId.toString()));
 
             userUsageCount.put(user.getUsername(), count);
         }

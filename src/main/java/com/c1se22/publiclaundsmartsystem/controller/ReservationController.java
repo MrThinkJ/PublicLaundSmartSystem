@@ -1,11 +1,17 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
+import com.c1se22.publiclaundsmartsystem.payload.request.ReservationCreateDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.ReservationResponseDto;
 import com.c1se22.publiclaundsmartsystem.payload.MachineInUseDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationDto;
 import com.c1se22.publiclaundsmartsystem.payload.ReservationResponseDto;
 import com.c1se22.publiclaundsmartsystem.service.ReservationService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -17,6 +23,7 @@ import java.util.List;
 public class ReservationController {
     ReservationService reservationService;
     @GetMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<List<ReservationResponseDto>> getAllReservations(){
         return ResponseEntity.ok(reservationService.getAllReservations());
     }
@@ -36,34 +43,46 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.getReservationsByMachineId(id));
     }
 
+    @GetMapping("/pending/users")
+    public ResponseEntity<ReservationResponseDto> getPendingReservationByUserId(Authentication authentication){
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(reservationService.getPendingReservationByUserId(userDetails.getUsername()));
+    }
+
     @GetMapping("/machines/inuse")
     public ResponseEntity<List<MachineInUseDto>> getMachineInUse(){
         return ResponseEntity.ok(reservationService.findMachineInUse());
     }
 
     @PostMapping
-    public ResponseEntity<ReservationResponseDto> createReservation(@RequestBody ReservationDto reservationDto){
-        return ResponseEntity.ok(reservationService.createReservation(reservationDto));
+    public ResponseEntity<ReservationResponseDto> createReservation(@RequestBody @Valid ReservationCreateDto reservationCreateDto,
+                                                                    Authentication authentication){
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(reservationService.createReservation(userDetails.getUsername(), reservationCreateDto));
     }
 
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<String> deleteReservation(@PathVariable Integer id){
-//        reservationService.deleteReservation(id);
-//        return ResponseEntity.ok("Reservation deleted");
-//    }
-
-    @PutMapping("/{id}/complete")
-    public ResponseEntity<ReservationResponseDto> completeReservation(@PathVariable Integer id){
-        return ResponseEntity.ok(reservationService.completeReservation(id));
+    @PutMapping("/complete")
+    public ResponseEntity<ReservationResponseDto> completeReservation(Authentication authentication){
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(reservationService.completeReservation(userDetails.getUsername()));
     }
 
-    @PutMapping("/{id}/cancel")
-    public ResponseEntity<Boolean> cancelReservation(@PathVariable Integer id){
-        reservationService.cancelReservation(id);
+    @PutMapping("/cancel")
+    public ResponseEntity<Boolean> cancelReservation(Authentication authentication){
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        reservationService.cancelReservation(userDetails.getUsername());
         return ResponseEntity.ok(true);
     }
+
     @GetMapping("/period")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<List<ReservationResponseDto>> getReservationsForPeriod(@RequestParam LocalDate start, @RequestParam LocalDate end){
         return ResponseEntity.ok(reservationService.getReservationsForPeriod(start, end));
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<List<ReservationResponseDto>> getReservationByUsername(Authentication authentication){
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(reservationService.getReservationByUsername(userDetails.getUsername()));
     }
 }

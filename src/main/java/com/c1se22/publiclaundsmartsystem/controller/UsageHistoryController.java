@@ -3,9 +3,14 @@ package com.c1se22.publiclaundsmartsystem.controller;
 import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
 import com.c1se22.publiclaundsmartsystem.payload.UsageReportDto;
 import com.c1se22.publiclaundsmartsystem.payload.UserUsageDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.UsageHistoryDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.UserUsageDto;
 import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -14,11 +19,12 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/usage-history")
+@RequestMapping("/api/usage-histories")
 @AllArgsConstructor
 public class UsageHistoryController {
     UsageHistoryService usageHistoryService;
     @GetMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<List<UsageHistoryDto>> getAllUsageHistories() {
         return ResponseEntity.ok(usageHistoryService.getAllUsageHistories());
     }
@@ -28,18 +34,14 @@ public class UsageHistoryController {
         return ResponseEntity.ok(usageHistoryService.getUsageHistoryById(id));
     }
 
-    @PatchMapping("/{id}/complete")
-    public ResponseEntity<Boolean> completeUsageHistory(@PathVariable Integer id) {
-        usageHistoryService.completeUsageHistory(id);
-        return ResponseEntity.ok(true);
-    }
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> deleteUsageHistory(@PathVariable Integer id) {
-//        usageHistoryService.deleteUsageHistory(id);
-//        return ResponseEntity.noContent().build();
+//    @PatchMapping("/{id}/complete")
+//    public ResponseEntity<Boolean> completeUsageHistory(@PathVariable Integer id) {
+//        usageHistoryService.completeUsageHistory(id);
+//        return ResponseEntity.ok(true);
 //    }
 
     @GetMapping("/between")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<List<UsageHistoryDto>> getUsageHistoriesBetween(@RequestParam String start, @RequestParam String end) {
         LocalDateTime startDate = LocalDateTime.parse(start);
         LocalDateTime endDate = LocalDateTime.parse(end);
@@ -47,6 +49,7 @@ public class UsageHistoryController {
     }
 
     @GetMapping("/count/washing-type")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<Map<String, Long>> getUsageCountByWashingType(@RequestParam String start, @RequestParam String end) {
         LocalDateTime startDate = LocalDateTime.parse(start);
         LocalDateTime endDate = LocalDateTime.parse(end);
@@ -54,6 +57,7 @@ public class UsageHistoryController {
     }
 
     @GetMapping("/revenue/washing-type")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<Map<String, BigDecimal>> getRevenueByWashingType(@RequestParam String start, @RequestParam String end) {
         LocalDateTime startDate = LocalDateTime.parse(start);
         LocalDateTime endDate = LocalDateTime.parse(end);
@@ -68,6 +72,7 @@ public class UsageHistoryController {
     }
 
     @GetMapping("/user-usage-count")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<Map<String, Long>> getUserUsageCount(@RequestParam String start, @RequestParam String end) {
         LocalDateTime startDate = LocalDateTime.parse(start);
         LocalDateTime endDate = LocalDateTime.parse(end);
@@ -75,6 +80,7 @@ public class UsageHistoryController {
     }
 
     @GetMapping("/total-revenue")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<BigDecimal> getTotalRevenue(@RequestParam String start, @RequestParam String end) {
         LocalDateTime startDate = LocalDateTime.parse(start);
         LocalDateTime endDate = LocalDateTime.parse(end);
@@ -82,10 +88,17 @@ public class UsageHistoryController {
     }
 
     @GetMapping("/total-usage-count")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
     public ResponseEntity<Long> getTotalUsageCount(@RequestParam String start, @RequestParam String end) {
         LocalDateTime startDate = LocalDateTime.parse(start);
         LocalDateTime endDate = LocalDateTime.parse(end);
         return ResponseEntity.ok(usageHistoryService.getTotalUsageCount(startDate, endDate));
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<List<UsageHistoryDto>> getUsageHistoriesByUsername(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(usageHistoryService.getUsageHistoriesByUsername(userDetails.getUsername()));
     }
 
     @GetMapping("/report")

@@ -1,10 +1,16 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
+import com.c1se22.publiclaundsmartsystem.payload.response.MachineAndTimeDto;
+import com.c1se22.publiclaundsmartsystem.payload.request.MachineDto;
 import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
 import com.c1se22.publiclaundsmartsystem.payload.MachineInUseDto;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,12 +22,6 @@ import static com.c1se22.publiclaundsmartsystem.util.AppConstants.*;
 @AllArgsConstructor
 public class MachineController {
     MachineService machineService;
-
-
-//    @GetMapping
-//    public ResponseEntity<List<MachineDto>> getAllMachines() {
-//        return ResponseEntity.ok(machineService.getAllMachines());
-//    }
 
     @GetMapping
     public ResponseEntity<List<MachineDto>> getMachines(@RequestParam(defaultValue = DEFAULT_PAGE_NUMBER) int page,

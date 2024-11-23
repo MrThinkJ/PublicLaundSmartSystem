@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.repository;
 
+import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.entity.UsageHistory;
 import com.c1se22.publiclaundsmartsystem.payload.UsageReportDto;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +20,7 @@ public interface UsageHistoryRepository extends JpaRepository<UsageHistory, Inte
     List<Object[]> countByWashingTypeAndStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
     @Query("SELECT u.washingType.id, SUM(u.cost) FROM UsageHistory u WHERE u.startTime BETWEEN :start AND :end GROUP BY u.machine.id")
     List<Object[]> sumCostByWashingTypeAndStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
-    @Query(value = "SELECT u.user.id, COUNT(u) FROM UsageHistory u WHERE u.startTime BETWEEN :start AND :end GROUP BY u.user.id ORDER BY COUNT(u) DESC", nativeQuery = true)
+    @Query(value = "SELECT u.user.id, COUNT(u) FROM UsageHistory u WHERE u.startTime BETWEEN :start AND :end GROUP BY u.user.id ORDER BY COUNT(u) DESC")
     List<Object[]> findTopUsersByStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, Pageable pageable);
     @Query("SELECT u.user.id, COUNT(u) FROM UsageHistory u WHERE u.startTime BETWEEN :start AND :end GROUP BY u.user.id")
     List<Object[]> findUserUsageCountByStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
@@ -27,6 +28,21 @@ public interface UsageHistoryRepository extends JpaRepository<UsageHistory, Inte
     BigDecimal sumCostByStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
     @Query("SELECT COUNT(u) FROM UsageHistory u WHERE u.startTime BETWEEN :start AND :end")
     Long countByStartTimeBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    @Query("SELECT u FROM UsageHistory u WHERE u.machine.id IN :machineIds AND u.user.id = :userId AND u.status = 'IN_PROGRESS'")
+    List<UsageHistory> findByCurrentUsedMachineIdsAndUserId(List<Integer> machineIds, Integer userId);
+    @Query("SELECT SUM(u.cost) FROM UsageHistory u WHERE u.machine IN :machines")
+    BigDecimal sumCostByMachines(@Param("machines") List<Machine> machines);
+    @Query("SELECT SUM(u.cost) FROM UsageHistory u WHERE u.machine IN :machines AND u.startTime BETWEEN :start AND :end")
+    BigDecimal sumCostByMachineInAndStartTimeBetween(
+            @Param("machines") List<Machine> machines,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+    @Query("SELECT COUNT(u) FROM UsageHistory u WHERE u.machine IN :machines AND u.startTime BETWEEN :start AND :end")
+    Integer countByMachineInAndStartTimeBetween(
+            @Param("machines") List<Machine> machines,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+    List<UsageHistory> findAllByUserUsername(String username);
     @Query("SELECT uh FROM UsageHistory uh " +
             "JOIN uh.user u " +
             "JOIN uh.machine m " +

@@ -2,7 +2,7 @@ package com.c1se22.publiclaundsmartsystem.service.impl;
 
 import com.c1se22.publiclaundsmartsystem.entity.User;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
-import com.c1se22.publiclaundsmartsystem.payload.UserDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.UserDto;
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.service.UserService;
 import lombok.AllArgsConstructor;
@@ -22,12 +22,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto getUserbyId(Integer id){
+    public UserDto getUserById(Integer id){
         User user = userRepository.findById(id).orElseThrow(()->
-                new ResourceNotFoundException("User", "id", id));
+                new ResourceNotFoundException("User", "id", id.toString()));
         return mapToUserDto(user);
     }
 
+//    @Override
+//    public UserDto addUser(UserDto userDto) {
+//        User user = new User();
+//        user.setUsername(userDto.getUsername());
+//        user.setFullname(userDto.getFullname());
+//        user.setEmail(userDto.getEmail());
+//        user.setPhone(userDto.getPhone());
+//        user.setBalance(userDto.getBalance());
+//        user.setCreatedAt(userDto.getCreatedAt());
+//        user.setLastLoginAt(userDto.getLastLoginAt());
+//        return mapToUserDto(userRepository.save(user));
+//    }
     @Override
     public UserDto addUser(UserDto userDto) {
         User user = new User();
@@ -46,10 +58,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto updateUser(Integer id, UserDto userDto) {
         User user = userRepository.findById(id).orElseThrow(
-                ()-> new ResourceNotFoundException("User", "id", id)
+                ()-> new ResourceNotFoundException("User", "id", id.toString())
         );
         user.setUsername(userDto.getUsername());
-        user.setPassword(userDto.getPassword());
         user.setFullname(userDto.getFullname());
         user.setEmail(userDto.getEmail());
         user.setPhone(userDto.getPhone());
@@ -63,7 +74,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Integer id) {
         User user = userRepository.findById(id).orElseThrow(
-                ()-> new ResourceNotFoundException("User", "id", id));
+                ()-> new ResourceNotFoundException("User", "id", id.toString()));
         userRepository.delete(user);
     }
 
@@ -71,12 +82,10 @@ public class UserServiceImpl implements UserService {
         return UserDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
-                .password(user.getPassword())
                 .fullname(user.getFullname())
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .balance(user.getBalance())
-                .is_active(user.getIsActive())
                 .createdAt(user.getCreatedAt())
                 .lastLoginAt(user.getLastLoginAt())
                 .build();
