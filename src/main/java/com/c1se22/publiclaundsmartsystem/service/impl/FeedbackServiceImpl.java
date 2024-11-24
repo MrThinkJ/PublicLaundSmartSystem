@@ -35,7 +35,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public FeedbackDto getFeedbackById(Integer id) {
         Feedback feedback = feedbackRepository.findById(id).orElseThrow(
-                ()-> new ResourceNotFoundException("Feedback", "id", id)
+                ()-> new ResourceNotFoundException("Feedback", "id", id.toString())
         );
         return mapToFeedbackDto(feedback);
     }
@@ -47,9 +47,9 @@ public class FeedbackServiceImpl implements FeedbackService {
         feedback.setRating(feedbackDto.getRating());
         feedback.setCreatedAt(feedbackDto.getCreatedAt());
         User user = userRepository.findById(feedbackDto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", feedbackDto.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id",feedbackDto.getUserId().toString()));
         Machine machine = machineRepository.findById(feedbackDto.getMachineId())
-                .orElseThrow(() -> new ResourceNotFoundException("Machine", "id", feedbackDto.getMachineId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Machine", "id", feedbackDto.getMachineId().toString()));
         feedback.setUser(user);
         feedback.setMachine(machine);
         return mapToFeedbackDto(feedbackRepository.save(feedback));
@@ -58,16 +58,16 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public FeedbackDto updateFeedback(Integer id, FeedbackDto feedbackDto) {
         Feedback feedback = feedbackRepository.findById(id).orElseThrow(
-                ()-> new ResourceNotFoundException("Feedback", "id", id)
+                ()-> new ResourceNotFoundException("Feedback", "id", id.toString())
         );
         feedback.setComment(feedbackDto.getComment());
         feedback.setRating(feedbackDto.getRating());
         feedback.setCreatedAt(feedbackDto.getCreatedAt());
         User user = userRepository.findById(feedbackDto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", feedbackDto.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", feedbackDto.getUserId().toString()));
 
         Machine machine = machineRepository.findById(feedbackDto.getMachineId())
-                .orElseThrow(() -> new ResourceNotFoundException("Machine", "id", feedbackDto.getMachineId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Machine", "id", feedbackDto.getMachineId().toString()));
         feedback.setUser(user);
         feedback.setMachine(machine);
         return mapToFeedbackDto(feedbackRepository.save(feedback));
@@ -76,7 +76,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Override
     public void deleteFeedback(Integer id) {
         Feedback feedback = feedbackRepository.findById(id).orElseThrow(
-                ()-> new ResourceNotFoundException("Feedback", "id", id));
+                ()-> new ResourceNotFoundException("Feedback", "id", id.toString()));
         feedbackRepository.delete(feedback);
     }
 

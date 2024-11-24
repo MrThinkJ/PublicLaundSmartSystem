@@ -9,7 +9,6 @@ import com.c1se22.publiclaundsmartsystem.entity.Reservation;
 import com.c1se22.publiclaundsmartsystem.entity.User;
 import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
-import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
 import com.c1se22.publiclaundsmartsystem.payload.MachineInUseDto;
 import com.c1se22.publiclaundsmartsystem.payload.response.MachineAndTimeDto;
 import com.c1se22.publiclaundsmartsystem.payload.request.MachineDto;

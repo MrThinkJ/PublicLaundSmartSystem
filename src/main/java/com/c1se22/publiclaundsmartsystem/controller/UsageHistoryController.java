@@ -1,8 +1,8 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
-import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
+
 import com.c1se22.publiclaundsmartsystem.payload.UsageReportDto;
-import com.c1se22.publiclaundsmartsystem.payload.UserUsageDto;
+
 import com.c1se22.publiclaundsmartsystem.payload.response.UsageHistoryDto;
 import com.c1se22.publiclaundsmartsystem.payload.response.UserUsageDto;
 import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;

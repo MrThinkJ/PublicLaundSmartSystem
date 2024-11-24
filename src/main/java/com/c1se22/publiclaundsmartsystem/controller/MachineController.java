@@ -2,7 +2,6 @@ package com.c1se22.publiclaundsmartsystem.controller;
 
 import com.c1se22.publiclaundsmartsystem.payload.response.MachineAndTimeDto;
 import com.c1se22.publiclaundsmartsystem.payload.request.MachineDto;
-import com.c1se22.publiclaundsmartsystem.payload.MachineDto;
 import com.c1se22.publiclaundsmartsystem.payload.MachineInUseDto;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
 import jakarta.validation.Valid;
@@ -57,8 +56,8 @@ public class MachineController {
         return ResponseEntity.ok(machineService.updateMachineStatus(id, status));
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<MachineDto>> getMachinesAreBeingUsedByUser(@PathVariable Integer userId) {
-        return ResponseEntity.ok(machineService.getMachinesAreBeingUsedByUser(userId));
-    }
+//    @GetMapping("/user/{userId}")
+//    public ResponseEntity<List<MachineDto>> getMachinesAreBeingUsedByUser(@PathVariable Integer userId) {
+//        return ResponseEntity.ok(machineService.getMachinesAreBeingUsedByUser(userId));
+//    }
 }

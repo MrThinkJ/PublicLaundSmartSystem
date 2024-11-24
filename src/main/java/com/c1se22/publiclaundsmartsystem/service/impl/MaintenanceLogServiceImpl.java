@@ -32,7 +32,7 @@ public class MaintenanceLogServiceImpl implements MaintenanceLogService {
     @Override
     public MaintenanceLogsDto getMaintenanceById(Integer id) {
         MaintenanceLog maintenanceLog = maintenanceLogRepository.findById(id).orElseThrow(
-                ()-> new ResourceNotFoundException("MaintenanceLog", "id", id)
+                ()-> new ResourceNotFoundException("MaintenanceLog", "id", id.toString())
         );
         return mapToDto(maintenanceLog);
     }
@@ -48,7 +48,7 @@ public class MaintenanceLogServiceImpl implements MaintenanceLogService {
         maintenanceLog.setTechnicianName(maintenanceLogsDto.getTechnicianName());
 
         Machine machine = machineRepository.findById(maintenanceLogsDto.getMachineId())
-                .orElseThrow(() -> new ResourceNotFoundException("Machine", "id", maintenanceLogsDto.getMachineId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Machine", "id", maintenanceLogsDto.getMachineId().toString()));
         maintenanceLog.setMachine(machine);
 
         return mapToDto(maintenanceLogRepository.save(maintenanceLog));
@@ -57,7 +57,7 @@ public class MaintenanceLogServiceImpl implements MaintenanceLogService {
     @Override
     public MaintenanceLogsDto updateMaintenance(Integer id, MaintenanceLogsDto maintenanceLogsDto) {
         MaintenanceLog maintenanceLog = maintenanceLogRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("MaintenanceLog", "id", id)
+                () -> new ResourceNotFoundException("MaintenanceLog", "id", id.toString())
         );
         maintenanceLog.setMaintenanceType(maintenanceLogsDto.getMaintenanceType());
         maintenanceLog.setMaintenanceDescription(maintenanceLogsDto.getMaintenanceDescription());
@@ -66,7 +66,7 @@ public class MaintenanceLogServiceImpl implements MaintenanceLogService {
         maintenanceLog.setCompletionDate(maintenanceLogsDto.getCompletionDate());
         maintenanceLog.setTechnicianName(maintenanceLogsDto.getTechnicianName());
         Machine machine = machineRepository.findById(maintenanceLogsDto.getMachineId())
-                .orElseThrow(() -> new ResourceNotFoundException("Machine", "id", maintenanceLogsDto.getMachineId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Machine", "id", maintenanceLogsDto.getMachineId().toString()));
         maintenanceLog.setMachine(machine);
 
         return mapToDto(maintenanceLogRepository.save(maintenanceLog));
@@ -75,7 +75,7 @@ public class MaintenanceLogServiceImpl implements MaintenanceLogService {
     @Override
     public void deleteMaintenance(Integer id) {
         MaintenanceLog maintenanceLog = maintenanceLogRepository.findById(id).orElseThrow(
-                ()-> new ResourceNotFoundException("MaintenanceLog", "id", id)
+                ()-> new ResourceNotFoundException("MaintenanceLog", "id", id.toString())
         );
         maintenanceLogRepository.delete(maintenanceLog);
     }

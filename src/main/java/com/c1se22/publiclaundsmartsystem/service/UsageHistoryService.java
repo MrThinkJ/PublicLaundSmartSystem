@@ -2,9 +2,7 @@ package com.c1se22.publiclaundsmartsystem.service;
 
 import com.c1se22.publiclaundsmartsystem.payload.response.UsageHistoryDto;
 import com.c1se22.publiclaundsmartsystem.payload.response.UserUsageDto;
-import com.c1se22.publiclaundsmartsystem.payload.UsageHistoryDto;
 import com.c1se22.publiclaundsmartsystem.payload.UsageReportDto;
-import com.c1se22.publiclaundsmartsystem.payload.UserUsageDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,4 +23,5 @@ public interface UsageHistoryService {
     Map<String, Long> getUserUsageCount(LocalDateTime start, LocalDateTime end);
     BigDecimal getTotalRevenue(LocalDateTime start, LocalDateTime end);
     long getTotalUsageCount(LocalDateTime start, LocalDateTime end);
+    public List<UsageReportDto> UsageReport();
 }
