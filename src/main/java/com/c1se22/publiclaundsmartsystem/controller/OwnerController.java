@@ -1,10 +1,14 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
+import com.c1se22.publiclaundsmartsystem.payload.request.OwnerWithdrawInfoRequestDto;
 import com.c1se22.publiclaundsmartsystem.service.OwnerService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -22,6 +26,16 @@ public class OwnerController {
     public ResponseEntity<Void> updateUserToOwner(@PathVariable String username) {
         ownerService.updateUserToOwner(username);
         return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/withdraw-info")
+    public ResponseEntity<Boolean> updateWithdrawInfo(@RequestBody @Valid OwnerWithdrawInfoRequestDto requestDto) {
+        return ResponseEntity.ok(ownerService.updateWithdrawInfo(requestDto));
+    }
+
+    @PostMapping("/withdraw")
+    public ResponseEntity<Boolean> withdraw() {
+        return ResponseEntity.ok(ownerService.withdraw());
     }
 
     @GetMapping("/revenue/total")

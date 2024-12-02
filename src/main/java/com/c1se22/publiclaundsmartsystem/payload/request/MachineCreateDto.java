@@ -1,6 +1,5 @@
 package com.c1se22.publiclaundsmartsystem.payload.request;
 
-import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,8 +10,9 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MachineDto {
-    private Integer id;
+public class MachineCreateDto {
+    @NotNull(message = "SecretId is required")
+    @NotBlank(message = "SecretId is not blank")
     private String secretId;
     @NotBlank(message = "Name is not blank")
     @NotNull(message = "Name is required")
@@ -23,8 +23,9 @@ public class MachineDto {
     @NotNull(message = "Capacity is required")
     @Min(value = 1, message = "Capacity must be greater than 0")
     private Integer capacity;
-    private String status;
-    @NotNull(message = "Location Id is required")
+    @NotNull(message = "Error")
+    @NotBlank(message = "Error")
+    private String hashKey;
     private Integer locationId;
     private String locationName;
     private String locationAddress;

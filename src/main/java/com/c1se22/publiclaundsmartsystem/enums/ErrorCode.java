@@ -12,6 +12,8 @@ public enum ErrorCode {
     RESOURCE_NOT_ACTIVE(1003, "%s with id %s is not active"),
     USER_BANNED(1004, "User %s is banned"),
     USER_DELETED(1005, "User %s is deleted"),
+    RESOURCE_EXISTS(1006, "%s already exists"),
+    FORBIDDEN(1007, "Forbidden access"),
 
     // Authentication errors (1100-1199)
     UNAUTHORIZED(1100, "Unauthorized access"),
@@ -34,7 +36,8 @@ public enum ErrorCode {
     OTP_EXPIRED(1306, "OTP has expired."),
     INVALID_OTP(1307, "Invalid OTP."),
     USED_OTP(1308, "OTP has already been used."),
-    RESET_TOKEN_EXPIRED(1308, "Password reset token has expired."),
+    RESET_TOKEN_EXPIRED(1309, "Password reset token has expired."),
+    MINIMUM_AMOUNT(1310, "Minimum amount is %s, your amount is %s."),
 
     // Validation errors (2000-2999)
     FIELD_REQUIRED(2000, "Field is required"),
@@ -56,6 +59,7 @@ public enum ErrorCode {
     INVALID_REFRESH_TOKEN(2302, "Invalid refresh token"),
     UNSUPPORTED_JWT(2303, "Unsupported JWT token"),
     INVALID_JWT_CLAIMS(2304, "JWT claim error"),
+    INVALID_HASH(2305, "Invalid hash"),
 
     // System errors (5000-5999)
     INTERNAL_ERROR(5000, "Internal server error"),

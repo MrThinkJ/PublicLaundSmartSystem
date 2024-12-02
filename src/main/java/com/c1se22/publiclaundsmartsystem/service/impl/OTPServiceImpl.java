@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
+import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
 import com.c1se22.publiclaundsmartsystem.entity.OTP;
 import com.c1se22.publiclaundsmartsystem.entity.PasswordResetToken;
 import com.c1se22.publiclaundsmartsystem.entity.User;
@@ -16,6 +17,7 @@ import com.c1se22.publiclaundsmartsystem.repository.PasswordResetTokenRepository
 import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.service.OTPService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -29,6 +31,7 @@ import java.util.UUID;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class OTPServiceImpl implements OTPService {
     OTPRepository otpRepository;
     PasswordResetTokenRepository passwordResetTokenRepository;
@@ -109,6 +112,7 @@ public class OTPServiceImpl implements OTPService {
     }
 
     @Override
+    @Loggable
     public boolean resetPassword(ResetPasswordRequestDto resetPasswordRequestDto) {
         User user = userRepository.findByUsernameOrEmail(resetPasswordRequestDto.getEmail(), resetPasswordRequestDto.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", resetPasswordRequestDto.getEmail()));
@@ -121,6 +125,7 @@ public class OTPServiceImpl implements OTPService {
         }
         user.setPassword(passwordEncoder.encode(resetPasswordRequestDto.getNewPassword()));
         userRepository.save(user);
+        log.info("Password reset for user: " + user.getEmail());
         return true;
     }
 }

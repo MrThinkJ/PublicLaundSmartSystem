@@ -1,8 +1,10 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
+import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
 import com.c1se22.publiclaundsmartsystem.entity.*;
 import com.c1se22.publiclaundsmartsystem.entity.Transaction;
 import com.c1se22.publiclaundsmartsystem.enums.TransactionStatus;
+import com.c1se22.publiclaundsmartsystem.enums.TransactionType;
 import com.c1se22.publiclaundsmartsystem.exception.PaymentProcessingException;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
 import com.c1se22.publiclaundsmartsystem.payload.response.CheckoutResponseDto;
@@ -37,6 +39,7 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
     UserRepository userRepository;
     NotificationService notificationService;
     @Override
+    @Loggable
     public CheckoutResponseDto createPaymentLink(CreatePaymentLinkRequestBody requestBody) {
         log.info("Creating payment link for amount: {}", requestBody.getPrice());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -63,6 +66,7 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                     .amount(BigDecimal.valueOf(data.getAmount()))
                     .timestamp(LocalDateTime.now())
                     .status(TransactionStatus.PENDING)
+                    .type(TransactionType.DEPOSIT)
                     .user(user)
                     .paymentId(data.getPaymentLinkId())
                     .build();
@@ -95,6 +99,7 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
     }
 
     @Override
+    @Loggable
     public PaymentLinkDto cancelPaymentLink(long paymentLinkId) {
         try{
             PaymentLinkData data = payOS.cancelPaymentLink(paymentLinkId, null);
@@ -103,8 +108,10 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
             transactionRepository.save(transaction);
             notificationService.sendNotification(transaction.getUser().getId(),
                     "Your payment has been cancelled.");
+            log.info("Successfully cancelled payment link for user: {}", transaction.getUser().getUsername());
             return mapToPaymentLinkDto(data);
         } catch (Exception e) {
+            log.error("Failed to cancel payment link: {}", e.getMessage(), e);
             throw new PaymentProcessingException("Failed to get payment link data. Error: "+e.getMessage());
         }
     }

@@ -1,6 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.repository;
 
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
+import com.c1se22.publiclaundsmartsystem.payload.MachineInUseDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,4 +21,7 @@ public interface MachineRepository extends JpaRepository<Machine, Integer> {
     Optional<Machine> findMachineAreBeingReservedByUser(@Param("userId") Integer userId);
     @Query(value = "select m from Machine m where m.user.id = :ownerId")
     List<Machine> findMachinesByOwnerId(@Param("ownerId") Integer ownerId);
+
+    boolean existsBySecretId(String secretId);
+    Optional<Machine> findBySecretId(String secretId);
 }

@@ -20,6 +20,7 @@ public class LocationController {
     public ResponseEntity<List<LocationSummaryDto>> getAllLocations(){
         return ResponseEntity.ok(locationService.getAllLocations());
     }
+
     @GetMapping("/{id}")
     public ResponseEntity<LocationDetailsDto> getLocationById(@PathVariable Integer id){
         return ResponseEntity.ok(locationService.getLocationById(id));

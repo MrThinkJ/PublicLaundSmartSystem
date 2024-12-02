@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
+import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
 import com.c1se22.publiclaundsmartsystem.entity.Notification;
 import com.c1se22.publiclaundsmartsystem.entity.User;
 import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
@@ -88,6 +89,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Loggable
     @Transactional(rollbackFor = Exception.class)
     public void sendNotification(Integer toUserId, String message) {
         User toUser = userRepository.findById(toUserId).orElseThrow(
@@ -113,6 +115,10 @@ public class NotificationServiceImpl implements NotificationService {
                 notificationRepository.save(notification);
                 log.info("Notification saved to database");
             } catch (Exception e){
+                if (e instanceof FirebaseMessagingException){
+                    userDeviceService.deleteDevice(token);
+                    log.info("Device deleted from database: "+token);
+                }
                 log.error("Error sending notification to device: "+token);
                 log.error(e.getMessage());
                 throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.INTERNAL_ERROR);
@@ -121,6 +127,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Loggable
     public void sendNotificationToAdminTopic(String message) {
         PushNotificationRequestDto request = PushNotificationRequestDto.builder()
                 .title("System Notification")

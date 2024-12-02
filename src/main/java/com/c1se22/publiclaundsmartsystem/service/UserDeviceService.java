@@ -11,4 +11,5 @@ public interface UserDeviceService {
     List<UserDeviceResponseDto> getDeviceByUserId(Integer userId);
     boolean isDeviceActive(String fcmToken);
     boolean deactivateDevice(String fcmToken);
+    void deleteDevice(String fcmToken);
 }

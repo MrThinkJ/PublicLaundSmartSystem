@@ -18,6 +18,8 @@ public class Machine {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "machine_id")
     private Integer id;
+    @Column(name = "secret_id", nullable = false, unique = true)
+    private String secretId;
     @Column(name = "machine_name", nullable = false)
     private String name;
     @Column(name = "model", nullable = false)

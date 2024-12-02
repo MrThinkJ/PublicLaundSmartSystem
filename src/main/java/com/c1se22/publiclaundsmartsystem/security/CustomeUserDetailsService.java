@@ -19,19 +19,17 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
-public class CustomerUserDetailsService implements UserDetailsService {
+public class CustomeUserDetailsService implements UserDetailsService {
     UserRepository userRepository;
     UserBanService userBanService;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsernameOrEmail(username, username)
                 .orElseThrow(()-> new UsernameNotFoundException("User not found with username or email: "+username));
-        if (!user.getIsActive()){
+        if (!user.getIsActive())
             throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.USER_DELETED, username);
-        }
-        if (userBanService.isUserBanned(user.getId())){
+        if (userBanService.isUserBanned(user.getId()))
             throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.USER_BANNED, username);
-        }
         Set<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toSet());

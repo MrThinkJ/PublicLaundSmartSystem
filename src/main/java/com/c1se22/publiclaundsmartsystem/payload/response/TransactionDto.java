@@ -1,6 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.payload.response;
 
 import com.c1se22.publiclaundsmartsystem.enums.TransactionStatus;
+import com.c1se22.publiclaundsmartsystem.enums.TransactionType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -18,6 +19,7 @@ public class TransactionDto {
   @Min(value = 1, message = "Amount must be greater than 0")
   private BigDecimal amount;
   private TransactionStatus status;
+  private TransactionType type;
   private LocalDateTime timestamp;
   @NotNull(message = "User id is required")
   private Integer userId;

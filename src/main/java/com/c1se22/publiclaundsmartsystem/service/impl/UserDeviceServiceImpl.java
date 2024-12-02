@@ -10,6 +10,7 @@ import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.service.UserDeviceService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -76,5 +77,14 @@ public class UserDeviceServiceImpl implements UserDeviceService {
         userDevice.setIsActive(false);
         userDeviceRepository.save(userDevice);
         return true;
+    }
+
+    @Override
+    @Transactional
+    public void deleteDevice(String fcmToken) {
+        UserDevice userDevice = userDeviceRepository.findByFcmToken(fcmToken).orElseThrow(
+                ()-> new ResourceNotFoundException("UserDevice", "fcmToken", fcmToken)
+        );
+        userDeviceRepository.delete(userDevice);
     }
 }

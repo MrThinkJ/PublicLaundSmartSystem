@@ -1,27 +1,31 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
-import com.c1se22.publiclaundsmartsystem.entity.UsageHistory;
-import com.c1se22.publiclaundsmartsystem.entity.User;
+import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
+import com.c1se22.publiclaundsmartsystem.entity.*;
+import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
+import com.c1se22.publiclaundsmartsystem.exception.APIException;
 import com.c1se22.publiclaundsmartsystem.payload.internal.FirebaseMachine;
-import com.c1se22.publiclaundsmartsystem.entity.Location;
-import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
+import com.c1se22.publiclaundsmartsystem.payload.request.MachineCreateDto;
 import com.c1se22.publiclaundsmartsystem.payload.response.MachineAndTimeDto;
 import com.c1se22.publiclaundsmartsystem.payload.request.MachineDto;
-import com.c1se22.publiclaundsmartsystem.repository.LocationRepository;
-import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
-import com.c1se22.publiclaundsmartsystem.repository.UsageHistoryRepository;
-import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
+import com.c1se22.publiclaundsmartsystem.repository.*;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
+import com.c1se22.publiclaundsmartsystem.service.OwnerService;
 import com.google.firebase.database.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,13 +36,33 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-@AllArgsConstructor
 public class MachineServiceImpl implements MachineService{
+    @Value("${app.machine.secret}")
+    String machineSecret;
     MachineRepository machineRepository;
     LocationRepository locationRepository;
     UsageHistoryRepository usageHistoryRepository;
     UserRepository userRepository;
+    RoleRepository roleRepository;
+    OwnerService ownerService;
     FirebaseDatabase firebaseDatabase;
+
+    public MachineServiceImpl(MachineRepository machineRepository,
+                              LocationRepository locationRepository,
+                              UsageHistoryRepository usageHistoryRepository,
+                              UserRepository userRepository,
+                              RoleRepository roleRepository,
+                              OwnerService ownerService,
+                              FirebaseDatabase firebaseDatabase) {
+        this.machineRepository = machineRepository;
+        this.locationRepository = locationRepository;
+        this.usageHistoryRepository = usageHistoryRepository;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.ownerService = ownerService;
+        this.firebaseDatabase = firebaseDatabase;
+    }
+
     @Override
     public List<MachineDto> getAllMachines() {
         return machineRepository.findAll().stream().map(this::mapToDto).collect(Collectors.toList());
@@ -60,8 +84,9 @@ public class MachineServiceImpl implements MachineService{
     }
 
     @Override
+    @Loggable
     @Transactional(rollbackFor = Exception.class)
-    public MachineDto addMachine(MachineDto machineDto) {
+    public MachineDto addMachine(MachineCreateDto machineDto) {
         Location location;
         if (machineDto.getLocationId() != null){
             location = locationRepository.findById(machineDto.getLocationId()).orElseThrow(() ->
@@ -78,7 +103,21 @@ public class MachineServiceImpl implements MachineService{
                     .build();
             location = locationRepository.save(location);
         }
+        if (machineRepository.existsBySecretId(machineDto.getSecretId()))
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.RESOURCE_EXISTS, "SecretId already exists");
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        if (bCryptPasswordEncoder.matches(machineSecret, machineDto.getHashKey()))
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_HASH);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepository.findByUsernameOrEmail(authentication.getName(), authentication.getName()).orElseThrow(() ->
+                new ResourceNotFoundException("User", "username", authentication.getName()));
+        Role role = roleRepository.findByName("ROLE_OWNER").orElseThrow(() ->
+                new ResourceNotFoundException("Role", "name", "ROLE_OWNER"));
+        if (!user.getRoles().contains(role)){
+            ownerService.updateUserToOwner(user.getUsername());
+        }
         Machine machine = Machine.builder()
+                .secretId(machineDto.getSecretId())
                 .name(machineDto.getName())
                 .model(machineDto.getModel())
                 .capacity(machineDto.getCapacity())
@@ -86,19 +125,21 @@ public class MachineServiceImpl implements MachineService{
                 .location(location)
                 .lastMaintenanceDate(LocalDate.now())
                 .installationDate(LocalDate.now())
+                .user(user)
                 .build();
         Machine newMachine = machineRepository.save(machine);
         FirebaseMachine firebaseMachine = FirebaseMachine.builder()
-                .id(machine.getId())
+                .id(machine.getSecretId())
                 .status(String.valueOf(machine.getStatus()))
                 .duration(0)
                 .build();
-        firebaseDatabase.getReference("machines").child(firebaseMachine.getId().toString()).setValueAsync(firebaseMachine);
+        firebaseDatabase.getReference("machines").child(firebaseMachine.getId()).setValueAsync(firebaseMachine);
         log.info("Machine {} has been added", newMachine.getId());
         return mapToDto(newMachine);
     }
 
     @Override
+    @Loggable
     public MachineDto updateMachine(Integer id, MachineDto machineDto) {
         Machine machine = machineRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Machine", "id", id.toString()));
@@ -112,23 +153,25 @@ public class MachineServiceImpl implements MachineService{
     }
 
     @Override
+    @Loggable
     public void deleteMachine(Integer id) {
         Machine machine = machineRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Machine", "id", id.toString()));
         machineRepository.delete(machine);
-        firebaseDatabase.getReference("machines").child(id.toString()).removeValueAsync();
+        firebaseDatabase.getReference("machines").child(machine.getSecretId()).removeValueAsync();
         log.info("Machine {} has been deleted", id);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @Loggable
     public MachineDto updateMachineStatus(Integer id, String status) {
         Machine machine = machineRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Machine", "id", id.toString()));
         MachineStatus machineStatus = MachineStatus.valueOf(status.toUpperCase());
         machine.setStatus(machineStatus);
         Machine updatedMachine = machineRepository.save(machine);
-        firebaseDatabase.getReference("machines").child(id.toString()).child("status").setValueAsync(status);
+        firebaseDatabase.getReference("machines").child(machine.getSecretId()).child("status").setValueAsync(status);
         log.info("Machine {} status has been updated to {}", id, status);
         return mapToDto(updatedMachine);
     }
@@ -165,9 +208,9 @@ public class MachineServiceImpl implements MachineService{
     }
 
     @Override
-    public void updateMachineErrorStatus(Integer id) {
-        Machine machine = machineRepository.findById(id).orElseThrow(() ->
-                new ResourceNotFoundException("Machine", "id", id.toString()));
+    public void updateMachineErrorStatus(String id) {
+        Machine machine = machineRepository.findBySecretId(id).orElseThrow(() ->
+                new ResourceNotFoundException("Machine", "id", id));
         CompletableFuture<String> future = new CompletableFuture<>();
         String path = "machines/" + id + "/status";
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference(path);
@@ -195,6 +238,7 @@ public class MachineServiceImpl implements MachineService{
     private MachineDto mapToDto(Machine machine) {
         MachineDto machineDto = MachineDto.builder()
                 .id(machine.getId())
+                .secretId(machine.getSecretId())
                 .name(machine.getName())
                 .model(machine.getModel())
                 .capacity(machine.getCapacity())
@@ -216,6 +260,7 @@ public class MachineServiceImpl implements MachineService{
     private MachineAndTimeDto mapToMachineAndTimeDto(Machine machine, UsageHistory usageHistory) {
         MachineAndTimeDto machineAndTimeDto = MachineAndTimeDto.builder()
                 .id(machine.getId())
+                .secretId(machine.getSecretId())
                 .name(machine.getName())
                 .model(machine.getModel())
                 .capacity(machine.getCapacity())
