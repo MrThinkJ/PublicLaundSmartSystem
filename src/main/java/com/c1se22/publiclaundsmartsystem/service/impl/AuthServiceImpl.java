@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
+import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
 import com.c1se22.publiclaundsmartsystem.entity.Role;
 import com.c1se22.publiclaundsmartsystem.entity.User;
 import com.c1se22.publiclaundsmartsystem.entity.UserBanHistory;
@@ -65,6 +66,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Loggable
     public boolean register(RegisterDto registerDto) {
         if (!registerDto.getPassword().equals(registerDto.getConfirmPassword())) {
             throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.PASSWORD_DOES_NOT_MATCH);
@@ -88,7 +90,8 @@ public class AuthServiceImpl implements AuthService {
                 .lastLoginAt(LocalDateTime.now())
                 .isActive(true)
                 .build();
-        Set<Role> roles = Set.of(roleRepository.findByName(RoleEnum.ROLE_USER.name()));
+        Set<Role> roles = Set.of(roleRepository.findByName(RoleEnum.ROLE_USER.name()).orElseThrow(
+                ()-> new APIException(HttpStatus.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_ERROR)));
         user.setRoles(roles);
         userRepository.save(user);
         UserBanHistory userBanHistory = UserBanHistory.builder()

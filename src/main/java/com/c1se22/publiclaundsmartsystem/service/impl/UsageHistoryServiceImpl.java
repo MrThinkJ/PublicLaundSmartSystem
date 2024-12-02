@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
+import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.entity.UsageHistory;
 import com.c1se22.publiclaundsmartsystem.entity.User;
@@ -66,6 +67,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
     }
 
     @Override
+    @Loggable
     public void createUsageHistory(UsageHistoryDto usageHistoryDto) {
         log.info("Creating usage history for machine ID: {}, user ID: {}", 
             usageHistoryDto.getMachineId(), usageHistoryDto.getUserId());
@@ -106,6 +108,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         UsageHistory usageHistory = usageHistoryRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("UsageHistory", "id", id.toString())
         );
+        usageHistory.setStatus(UsageHistoryStatus.COMPLETED);
         Machine machine = usageHistory.getMachine();
         machineService.updateMachineStatus(machine.getId(), "AVAILABLE");
         firebaseDatabase.getReference("machines").child(machine.getId().toString()).child("duration")

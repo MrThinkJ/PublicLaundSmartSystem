@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class FirebaseMachine {
-    private Integer id;
+    private String id;
     private String status;
     private Integer duration;
 }

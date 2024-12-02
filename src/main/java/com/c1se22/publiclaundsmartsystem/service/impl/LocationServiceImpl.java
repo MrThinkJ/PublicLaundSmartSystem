@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
+import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
 import com.c1se22.publiclaundsmartsystem.entity.Location;
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
@@ -35,6 +36,7 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
+    @Loggable
     public LocationSummaryDto addLocation(LocationSummaryDto locationSummaryDto) {
         Location location = new Location();
         location.setName(locationSummaryDto.getName());
@@ -46,6 +48,7 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
+    @Loggable
     public LocationSummaryDto updateLocation(Integer id, LocationSummaryDto locationSummaryDto) {
         Location location = locationRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Location", "id", id.toString())
@@ -58,6 +61,7 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
+    @Loggable
     @Transactional(rollbackFor = Exception.class)
     public void deleteLocation(Integer id) {
         Location location = locationRepository.findById(id).orElseThrow(
@@ -77,6 +81,9 @@ public class LocationServiceImpl implements LocationService {
                 .address(location.getAddress())
                 .lat(location.getLat())
                 .lng(location.getLng())
+                .city(location.getCity())
+                .district(location.getDistrict())
+                .ward(location.getWard())
                 .machineCount(location.getMachines().size())
                 .machineIds(location.getMachines().stream().map(Machine::getId).toList())
                 .build();

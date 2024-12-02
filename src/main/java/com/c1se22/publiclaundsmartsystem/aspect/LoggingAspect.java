@@ -10,24 +10,23 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class LoggingAspect {
-    
-    @Around("execution(* com.c1se22.publiclaundsmartsystem.service..*.*(..))")
-    public Object logAroundServiceMethods(ProceedingJoinPoint joinPoint) throws Throwable {
-        String methodName = joinPoint.getSignature().getName();
-        String className = joinPoint.getTarget().getClass().getSimpleName();
-        
-        log.info("Entering method [{}] in class [{}]", methodName, className);
-        
-        long startTime = System.currentTimeMillis();
-        Object result = null;
-        try {
-            result = joinPoint.proceed();
-            long endTime = System.currentTimeMillis();
-            log.info("Method [{}] in class [{}] completed in {}ms", methodName, className, (endTime - startTime));
-            return result;
-        } catch (Exception e) {
-            log.error("Exception in method [{}] in class [{}]: {}", methodName, className, e.getMessage());
-            throw e;
-        }
-    }
+   @Around("@annotation(com.c1se22.publiclaundsmartsystem.annotation.Loggable)")
+   public Object logAroundServiceMethods(ProceedingJoinPoint joinPoint) throws Throwable {
+       String methodName = joinPoint.getSignature().getName();
+       String className = joinPoint.getTarget().getClass().getSimpleName();
+
+       log.info("Entering method [{}] in class [{}]", methodName, className);
+
+       long startTime = System.currentTimeMillis();
+       Object result = null;
+       try {
+           result = joinPoint.proceed();
+           long endTime = System.currentTimeMillis();
+           log.info("Method [{}] in class [{}] completed in {}ms", methodName, className, (endTime - startTime));
+           return result;
+       } catch (Exception e) {
+           log.error("Exception in method [{}] in class [{}]: {}", methodName, className, e.getMessage());
+           throw e;
+       }
+   }
 } 

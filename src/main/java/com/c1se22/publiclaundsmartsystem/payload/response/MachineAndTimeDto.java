@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 public class MachineAndTimeDto {
     private Integer id;
+    private String secretId;
     @NotBlank(message = "Name is not blank")
     @NotNull(message = "Name is required")
     private String name;

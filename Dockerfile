@@ -1,14 +1,12 @@
-FROM maven:3.9.8-eclipse-temurin-21 AS build
-COPY pom.xml /app/
-COPY src /app/src/
-COPY /src/main/resources/config/firebase_key.json /app/src/main/resources/config/firebase_key.json
-WORKDIR /app
-ENV MAVEN_CONFIG=/root/.m2
-RUN mvn clean package -DskipTests
+FROM maven:3.9.9-eclipse-temurin-21-alpine AS build
+COPY ./pom.xml ./pom.xml
+RUN mvn dependency:go-offline -B
+COPY ./src ./src
+RUN mvn package -DskipTests
 
-FROM openjdk:21-jdk
+FROM eclipse-temurin:21-jre-alpine as production
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
-COPY --from=build /app/src/main/resources/config/firebase_key.json /app/config/firebase_key.json
+COPY --from=build target/*.jar ./
+COPY --from=build /src/main/resources/config/firebase_key.json /config/firebase_key.json
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar", "--spring.config.location=classpath:/application-docker.properties"]
+ENTRYPOINT ["java", "-jar", "./target/app.jar", "--spring.config.location=classpath:/application-docker.properties"]

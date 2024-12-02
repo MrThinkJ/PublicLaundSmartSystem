@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.controller;
 
+import com.c1se22.publiclaundsmartsystem.payload.request.MachineCreateDto;
 import com.c1se22.publiclaundsmartsystem.payload.response.MachineAndTimeDto;
 import com.c1se22.publiclaundsmartsystem.payload.request.MachineDto;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
@@ -35,9 +36,8 @@ public class MachineController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OWNER')")
-    public ResponseEntity<MachineDto> addMachine(@RequestBody @Valid MachineDto machineDto) {
-        return ResponseEntity.ok(machineService.addMachine(machineDto));
+    public ResponseEntity<MachineDto> addMachine(@RequestBody @Valid MachineCreateDto machineCreateDto) {
+        return ResponseEntity.ok(machineService.addMachine(machineCreateDto));
     }
 
     @PutMapping("/{id}")
@@ -73,7 +73,7 @@ public class MachineController {
 
     @PatchMapping("/error/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<Boolean> updateMachineErrorStatus(@PathVariable Integer id) {
+    public ResponseEntity<Boolean> updateMachineErrorStatus(@PathVariable String id) {
         machineService.updateMachineErrorStatus(id);
         return ResponseEntity.ok(true);
     }

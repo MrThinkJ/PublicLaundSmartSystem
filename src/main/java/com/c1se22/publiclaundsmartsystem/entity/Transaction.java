@@ -1,6 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.entity;
 
 import com.c1se22.publiclaundsmartsystem.enums.TransactionStatus;
+import com.c1se22.publiclaundsmartsystem.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +29,9 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_status", nullable = false)
     private TransactionStatus status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "transaction_type", nullable = false)
+    private TransactionType type;
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
     @Column(name = "payment_id")

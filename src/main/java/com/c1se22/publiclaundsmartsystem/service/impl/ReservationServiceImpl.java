@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
+import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
 import com.c1se22.publiclaundsmartsystem.entity.*;
 import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
 import com.c1se22.publiclaundsmartsystem.enums.ReservationStatus;
@@ -17,6 +18,7 @@ import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.repository.WashingTypeRepository;
 import com.c1se22.publiclaundsmartsystem.service.*;
 import lombok.AllArgsConstructor;
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +92,7 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
+    @Loggable
     public ReservationResponseDto createReservation(String username, ReservationCreateDto reservationDto) {
         log.info("Creating reservation for user: {}, machine ID: {}", 
             username, reservationDto.getMachineId());
@@ -159,6 +162,7 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
+    @Loggable
     public ReservationResponseDto completeReservation(String username) {
         User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
                 () -> new ResourceNotFoundException("User", "username", username)
@@ -268,6 +272,8 @@ public class ReservationServiceImpl implements ReservationService {
                 .userId(reservation.getUser().getId())
                 .machineId(reservation.getMachine().getId())
                 .washingType(reservation.getWashingType())
+                .startTime(reservation.getStartTime())
+                .endTime(reservation.getEndTime())
                 .build();
     }
 

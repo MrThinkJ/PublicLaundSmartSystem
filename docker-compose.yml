@@ -36,20 +36,9 @@ services:
       - POSTGRESQL_USER=postgres
       - POSTGRESQL_PASSWORD=28122003
     volumes:
-      - /opt/app/bin:/app/bin
-      - /opt/app/uploads:/app/uploads
-      - maven-repo:/root/.m2
       - "/etc/localtime:/etc/localtime:ro"
       - "/etc/timezone:/etc/timezone:ro"
     networks:
       shared_net:
 networks:
   shared_net:
-
-volumes:
-  maven-repo:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /opt/maven-repo

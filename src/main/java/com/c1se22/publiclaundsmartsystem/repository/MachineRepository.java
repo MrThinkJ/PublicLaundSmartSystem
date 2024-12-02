@@ -21,4 +21,7 @@ public interface MachineRepository extends JpaRepository<Machine, Integer> {
     Optional<Machine> findMachineAreBeingReservedByUser(@Param("userId") Integer userId);
     @Query(value = "select m from Machine m where m.user.id = :ownerId")
     List<Machine> findMachinesByOwnerId(@Param("ownerId") Integer ownerId);
+
+    boolean existsBySecretId(String secretId);
+    Optional<Machine> findBySecretId(String secretId);
 }

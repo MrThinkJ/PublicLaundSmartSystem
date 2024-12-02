@@ -74,6 +74,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .timestamp(transaction.getTimestamp())
                 .userId(transaction.getUser().getId())
                 .userName(transaction.getUser().getUsername())
+                .type(transaction.getType())
                 .build();
     }
 }
