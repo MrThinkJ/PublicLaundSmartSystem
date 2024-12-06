@@ -235,6 +235,14 @@ public class MachineServiceImpl implements MachineService{
         log.info("Machine {} status has been updated to ERROR", id);
     }
 
+    @Override
+    public boolean checkMachineHashKey(String hashKey) {
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        if (bCryptPasswordEncoder.matches(machineSecret, hashKey))
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_HASH);
+        return true;
+    }
+
     private MachineDto mapToDto(Machine machine) {
         MachineDto machineDto = MachineDto.builder()
                 .id(machine.getId())

@@ -121,7 +121,6 @@ public class NotificationServiceImpl implements NotificationService {
                 }
                 log.error("Error sending notification to device: "+token);
                 log.error(e.getMessage());
-                throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.INTERNAL_ERROR);
             }
         });
     }

@@ -73,6 +73,7 @@ public class UserServiceImpl implements UserService {
                 .balance(user.getBalance())
                 .createdAt(user.getCreatedAt())
                 .lastLoginAt(user.getLastLoginAt())
+                .isActive(user.getIsActive())
                 .build();
     }
 }

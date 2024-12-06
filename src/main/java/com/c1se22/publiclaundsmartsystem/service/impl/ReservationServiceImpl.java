@@ -172,6 +172,7 @@ public class ReservationServiceImpl implements ReservationService {
         );
         reservation.setStatus(ReservationStatus.COMPLETED);
         reservation.setUpdatedAt(LocalDateTime.now());
+        reservation.setEndTime(LocalDateTime.now());
 
         Reservation savedReservation = reservationRepository.save(reservation);
 
@@ -225,6 +226,7 @@ public class ReservationServiceImpl implements ReservationService {
         );
         reservation.setStatus(ReservationStatus.CANCELED);
         reservation.setUpdatedAt(LocalDateTime.now());
+        reservation.setEndTime(LocalDateTime.now());
         Machine machine = reservation.getMachine();
         machineService.updateMachineStatus(machine.getId(), "AVAILABLE");
         reservationRepository.save(reservation);
