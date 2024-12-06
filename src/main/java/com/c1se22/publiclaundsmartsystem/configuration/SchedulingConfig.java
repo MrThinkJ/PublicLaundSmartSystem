@@ -21,8 +21,12 @@ public class SchedulingConfig {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setPoolSize(poolSize);
         scheduler.setThreadNamePrefix("laundry-task-");
+        scheduler.setRejectedExecutionHandler((runnable, executor) -> 
+            log.error("Task rejected, thread pool is full"));
         scheduler.setErrorHandler(throwable ->
                 log.error("Scheduled task error", throwable));
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.setAwaitTerminationSeconds(60);
         return scheduler;
     }
 }

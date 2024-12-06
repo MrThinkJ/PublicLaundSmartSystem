@@ -25,18 +25,22 @@ public class WashingCompleteEventHandler {
     @Async
     @EventListener
     public void handleWashingCompleteEvent(WashingCompleteEvent event) {
+        String taskId = "complete-" + event.getUsageHistory().getUsageId();
         log.info("Processing washing complete event for usage ID: {}", 
             event.getUsageHistory().getUsageId());
         try {
             Runnable task = () -> {
+                log.info("Executing completion task for usage ID: {}", 
+                    event.getUsageHistory().getUsageId());
                 usageHistoryService.completeUsageHistory(event.getUsageHistory().getUsageId());
                 notificationService.sendNotification(event.getUsageHistory().getUser().getId(),
                         String.format("Your washing session in machine %s has been completed. Please collect your clothes.",
                                 event.getUsageHistory().getMachine().getName()));
             };
-            scheduler.schedule(task, Instant.now().plus(AppConstants.TIME_TO_NOTIFY_USER, TimeUnit.MINUTES.toChronoUnit()));
-            log.info("Successfully scheduled completion notification for usage ID: {}", 
-                event.getUsageHistory().getUsageId());
+            scheduler.schedule(task, 
+                Instant.now().plus(AppConstants.TIME_TO_NOTIFY_USER, TimeUnit.MINUTES.toChronoUnit()));
+            log.info("Successfully scheduled complete event for usage ID: {} with task ID: {}", 
+                event.getUsageHistory().getUsageId(), taskId);
         } catch (Exception e) {
             log.error("Error processing washing complete event: {}", e.getMessage(), e);
             throw e;

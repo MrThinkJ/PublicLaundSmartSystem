@@ -4,6 +4,7 @@ import com.c1se22.publiclaundsmartsystem.payload.request.MachineCreateDto;
 import com.c1se22.publiclaundsmartsystem.payload.response.MachineAndTimeDto;
 import com.c1se22.publiclaundsmartsystem.payload.request.MachineDto;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -89,5 +90,10 @@ public class MachineController {
     public ResponseEntity<List<MachineDto>> getMachinesByCurrentOwner(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         return ResponseEntity.ok(machineService.getMachinesForCurrentOwner(userDetails.getUsername()));
+    }
+
+    @PostMapping("/check")
+    public ResponseEntity<Boolean> checkMachineHashKey(@RequestBody ObjectNode objectNode) {
+        return ResponseEntity.ok(machineService.checkMachineHashKey(objectNode.get("hashKey").asText()));
     }
 }

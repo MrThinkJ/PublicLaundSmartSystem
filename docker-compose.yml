@@ -38,6 +38,7 @@ services:
     volumes:
       - "/etc/localtime:/etc/localtime:ro"
       - "/etc/timezone:/etc/timezone:ro"
+      - "/opt/laundry_system/logs:/app/logs"
     networks:
       shared_net:
 networks:
