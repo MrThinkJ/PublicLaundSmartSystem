@@ -93,7 +93,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
             usageHistory.setUser(user);
             usageHistory.setStatus(UsageHistoryStatus.IN_PROGRESS);
             UsageHistory newUsageHistory = usageHistoryRepository.save(usageHistory);
-            firebaseDatabase.getReference("machines").child(machine.getId().toString()).child("duration")
+            firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId()).child("duration")
                     .setValueAsync(washingType.getDefaultDuration().toString());
             eventService.publishEvent(new WashingNearCompleteEvent(newUsageHistory, washingType.getDefaultDuration()));
             log.info("Successfully created usage history with ID: {}", newUsageHistory.getUsageId());
@@ -111,7 +111,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         usageHistory.setStatus(UsageHistoryStatus.COMPLETED);
         Machine machine = usageHistory.getMachine();
         machineService.updateMachineStatus(machine.getId(), "AVAILABLE");
-        firebaseDatabase.getReference("machines").child(machine.getId().toString()).child("duration")
+        firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId()).child("duration")
                 .setValueAsync(0);
         usageHistoryRepository.save(usageHistory);
     }

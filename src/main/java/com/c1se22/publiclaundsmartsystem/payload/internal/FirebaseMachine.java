@@ -9,4 +9,5 @@ public class FirebaseMachine {
     private String id;
     private String status;
     private Integer duration;
+    private String RealtimeStatus;
 }

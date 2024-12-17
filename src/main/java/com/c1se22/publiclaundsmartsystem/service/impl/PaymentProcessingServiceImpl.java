@@ -107,7 +107,7 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
             transaction.setStatus(TransactionStatus.CANCELLED);
             transactionRepository.save(transaction);
             notificationService.sendNotification(transaction.getUser().getId(),
-                    "Your payment has been cancelled.");
+                    "Thanh toán của bạn đã bị hủy.");
             log.info("Successfully cancelled payment link for user: {}", transaction.getUser().getUsername());
             return mapToPaymentLinkDto(data);
         } catch (Exception e) {
@@ -143,8 +143,20 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                     .build();
             WebhookData data = payOS.verifyPaymentWebhookData(webhookBody);
             if (webhookBody.getSuccess()){
+                PaymentLinkData paymentLinkData = payOS.getPaymentLinkInformation(data.getOrderCode());
+                if (paymentLinkData == null){
+                    log.error("Payment link not found for order code: {}", data.getOrderCode());
+                    throw new ResourceNotFoundException("PaymentLink", "orderCode", data.getOrderCode().toString());
+                }
                 Transaction transaction = transactionRepository.findByPaymentId(data.getPaymentLinkId());
                 if (transaction == null){
+                    log.error("Transaction not found for payment link: {}", data.getPaymentLinkId());
+                    throw new ResourceNotFoundException("Transaction", "paymentId", data.getPaymentLinkId());
+                }
+                if (paymentLinkData.getAmountRemaining() > 0){
+                    notificationService.sendNotification(transaction.getUser().getId(),
+                            "Bạn chưa thanh toán đủ số tiền, vui lòng thanh toán thêm.");
+                    log.error("Payment link amount remaining is greater than 0 for order code: {}", data.getOrderCode());
                     return;
                 }
                 transaction.setStatus(TransactionStatus.COMPLETED);
@@ -152,13 +164,15 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                 User user = transaction.getUser();
                 user.setBalance(user.getBalance().add(BigDecimal.valueOf(data.getAmount())));
                 userRepository.save(user);
+                notificationService.sendNotification(user.getId(),
+                        "Thanh toán của bạn đã thực hiện thành công.");
                 log.info("Successfully handled payos transfer for user: {}", user.getUsername());
             } else{
                 Transaction transaction = transactionRepository.findByPaymentId(data.getPaymentLinkId());
                 transaction.setStatus(TransactionStatus.FAILED);
                 transactionRepository.save(transaction);
                 notificationService.sendNotification(transaction.getUser().getId(),
-                        "Your payment has failed. Please try again.");
+                        "Thanh toán của bạn đã thất bại. Vui lòng thử lại.");
                 log.error("Failed to handle payos transfer for payment link: {}", data.getPaymentLinkId());
             }
         } catch (Exception e){

@@ -8,4 +8,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public class WashingCompleteEvent implements AppEvent{
     private UsageHistory usageHistory;
+    private Integer remainingTime;
 }

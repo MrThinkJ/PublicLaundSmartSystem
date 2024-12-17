@@ -3,16 +3,19 @@ package com.c1se22.publiclaundsmartsystem.entity;
 import com.c1se22.publiclaundsmartsystem.enums.UsageHistoryStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "usage_histories")
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@DynamicInsert
+@DynamicUpdate
 @Builder
 public class UsageHistory {
     @Id

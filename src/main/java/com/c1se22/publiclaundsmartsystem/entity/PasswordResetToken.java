@@ -1,14 +1,18 @@
 package com.c1se22.publiclaundsmartsystem.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.util.Date;
 
-@Getter
-@Setter
-@Entity(name = "password_reset_token")
+@Data
+@DynamicInsert
+@DynamicUpdate
+@Entity(name = "password_reset_tokens")
 public class PasswordResetToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

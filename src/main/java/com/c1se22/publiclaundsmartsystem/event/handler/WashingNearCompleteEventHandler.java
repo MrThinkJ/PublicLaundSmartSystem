@@ -30,17 +30,17 @@ public class WashingNearCompleteEventHandler {
         UsageHistory usageHistory = event.getUsageHistory();
         String taskId = "near-complete-" + usageHistory.getUsageId();
         log.info("Processing washing near complete event for usage ID: {}", usageHistory.getUsageId());
-        
+        Integer timeToNotify = Math.toIntExact(Math.round((event.getDuration() * AppConstants.TIME_TO_NOTIFY_USER)));
         Runnable task = () -> {
             log.info("Executing near completion task for usage ID: {}", usageHistory.getUsageId());
-            eventService.publishEvent(new WashingCompleteEvent(usageHistory));
+            eventService.publishEvent(new WashingCompleteEvent(usageHistory, event.getDuration() - timeToNotify));
             notificationService.sendNotification(usageHistory.getUser().getId(),
-                    String.format("Your washing in machine %s will complete in %s minutes",
-                            usageHistory.getMachine().getName(), AppConstants.TIME_TO_NOTIFY_USER));
+                    String.format("Đồ của bạn ở máy %s sẽ hoàn thành trong %d phút. Vui lòng chuẩn bị!",
+                            usageHistory.getMachine().getName(), event.getDuration() - timeToNotify));
         };
         
         scheduler.schedule(task,
-                Instant.now().plus(event.getDuration() - AppConstants.TIME_TO_NOTIFY_USER,
+                Instant.now().plus(timeToNotify,
                         TimeUnit.MINUTES.toChronoUnit()));
         log.info("Successfully scheduled near complete event for usage ID: {} with task ID: {}", 
             usageHistory.getUsageId(), taskId);
