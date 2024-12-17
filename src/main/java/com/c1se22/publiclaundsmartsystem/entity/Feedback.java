@@ -1,19 +1,19 @@
 package com.c1se22.publiclaundsmartsystem.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "feedbacks")
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@DynamicInsert
+@DynamicUpdate
 public class Feedback {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

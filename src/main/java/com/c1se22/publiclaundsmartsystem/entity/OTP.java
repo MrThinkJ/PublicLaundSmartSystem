@@ -2,12 +2,15 @@ package com.c1se22.publiclaundsmartsystem.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.util.Date;
 
-@Getter
-@Setter
-@Entity(name = "otp")
+@Data
+@DynamicInsert
+@DynamicUpdate
+@Entity(name = "otps")
 public class OTP {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

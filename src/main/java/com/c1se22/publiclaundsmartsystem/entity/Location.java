@@ -2,15 +2,18 @@ package com.c1se22.publiclaundsmartsystem.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.util.Set;
 
 @Entity
 @Table(name = "locations")
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@DynamicInsert
+@DynamicUpdate
 @Builder
 public class Location {
     @Id

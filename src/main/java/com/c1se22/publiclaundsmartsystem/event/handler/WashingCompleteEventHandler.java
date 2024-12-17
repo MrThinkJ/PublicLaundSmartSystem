@@ -34,11 +34,11 @@ public class WashingCompleteEventHandler {
                     event.getUsageHistory().getUsageId());
                 usageHistoryService.completeUsageHistory(event.getUsageHistory().getUsageId());
                 notificationService.sendNotification(event.getUsageHistory().getUser().getId(),
-                        String.format("Your washing session in machine %s has been completed. Please collect your clothes.",
+                        String.format("Máy %s đã giặt xong. Hãy lấy quần áo của bạn.",
                                 event.getUsageHistory().getMachine().getName()));
             };
             scheduler.schedule(task, 
-                Instant.now().plus(AppConstants.TIME_TO_NOTIFY_USER, TimeUnit.MINUTES.toChronoUnit()));
+                Instant.now().plus(event.getRemainingTime(), TimeUnit.MINUTES.toChronoUnit()));
             log.info("Successfully scheduled complete event for usage ID: {} with task ID: {}", 
                 event.getUsageHistory().getUsageId(), taskId);
         } catch (Exception e) {

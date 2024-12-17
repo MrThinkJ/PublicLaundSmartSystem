@@ -20,4 +20,5 @@ public interface MachineService {
     List<MachineDto> getMachinesForCurrentOwner(String username);
     void updateMachineErrorStatus(String secretId);
     boolean checkMachineHashKey(String hashKey);
+    boolean checkMachineRTStatus(Integer id);
 }

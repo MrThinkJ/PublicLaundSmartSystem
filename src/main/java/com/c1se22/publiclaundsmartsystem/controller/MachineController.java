@@ -96,4 +96,9 @@ public class MachineController {
     public ResponseEntity<Boolean> checkMachineHashKey(@RequestBody ObjectNode objectNode) {
         return ResponseEntity.ok(machineService.checkMachineHashKey(objectNode.get("hashKey").asText()));
     }
+
+    @PostMapping("/check-active/{id}")
+    public ResponseEntity<Boolean> checkMachineStatus(@PathVariable Integer id) {
+        return ResponseEntity.ok(machineService.checkMachineRTStatus(id));
+    }
 }

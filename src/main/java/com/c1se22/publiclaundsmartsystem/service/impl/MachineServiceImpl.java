@@ -33,6 +33,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -106,7 +107,7 @@ public class MachineServiceImpl implements MachineService{
         if (machineRepository.existsBySecretId(machineDto.getSecretId()))
             throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.RESOURCE_EXISTS, "SecretId already exists");
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        if (bCryptPasswordEncoder.matches(machineSecret, machineDto.getHashKey()))
+        if (!bCryptPasswordEncoder.matches(machineSecret, machineDto.getHashKey()))
             throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_HASH);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository.findByUsernameOrEmail(authentication.getName(), authentication.getName()).orElseThrow(() ->
@@ -133,7 +134,7 @@ public class MachineServiceImpl implements MachineService{
                 .status(String.valueOf(machine.getStatus()))
                 .duration(0)
                 .build();
-        firebaseDatabase.getReference("machines").child(firebaseMachine.getId()).setValueAsync(firebaseMachine);
+        firebaseDatabase.getReference("WashingMachineList").child(firebaseMachine.getId()).setValueAsync(firebaseMachine);
         log.info("Machine {} has been added", newMachine.getId());
         return mapToDto(newMachine);
     }
@@ -158,7 +159,7 @@ public class MachineServiceImpl implements MachineService{
         Machine machine = machineRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Machine", "id", id.toString()));
         machineRepository.delete(machine);
-        firebaseDatabase.getReference("machines").child(machine.getSecretId()).removeValueAsync();
+        firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId()).removeValueAsync();
         log.info("Machine {} has been deleted", id);
     }
 
@@ -171,7 +172,7 @@ public class MachineServiceImpl implements MachineService{
         MachineStatus machineStatus = MachineStatus.valueOf(status.toUpperCase());
         machine.setStatus(machineStatus);
         Machine updatedMachine = machineRepository.save(machine);
-        firebaseDatabase.getReference("machines").child(machine.getSecretId()).child("status").setValueAsync(status);
+        firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId()).child("status").setValueAsync(status);
         log.info("Machine {} status has been updated to {}", id, status);
         return mapToDto(updatedMachine);
     }
@@ -238,9 +239,49 @@ public class MachineServiceImpl implements MachineService{
     @Override
     public boolean checkMachineHashKey(String hashKey) {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        if (bCryptPasswordEncoder.matches(machineSecret, hashKey))
+        if (!bCryptPasswordEncoder.matches(machineSecret, hashKey))
             throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_HASH);
         return true;
+    }
+
+    @Override
+    public boolean checkMachineRTStatus(Integer id) {
+        Machine machine = machineRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Machine", "id", id.toString()));
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        DatabaseReference ref = firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId());
+        ref.child("status").setValueAsync("CHECK");
+        ref.child("RealtimeStatus").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String rtStatus = dataSnapshot.getValue(String.class);
+                future.complete(rtStatus != null && rtStatus.equals("READY"));
+            }
+            @Override
+            public void onCancelled(DatabaseError error) {
+                future.completeExceptionally(error.toException());
+                log.error("Error checking machine RT status: {}", error.getMessage());
+            }
+        });
+        try {
+            boolean isWorking = future.get(5, TimeUnit.SECONDS);
+            if (!isWorking) {
+                machine.setStatus(MachineStatus.ERROR);
+                machineRepository.save(machine);
+                ref.child("status").setValueAsync("ERROR");
+                log.warn("Machine {} is not responding", id);
+            } else {
+                ref.child("status").setValueAsync(machine.getStatus().toString());
+                log.info("Machine {} is working properly", id);
+            }
+            return isWorking;
+        } catch (Exception e) {
+            log.error("Error while checking machine status: {}", e.getMessage());
+            machine.setStatus(MachineStatus.ERROR);
+            machineRepository.save(machine);
+            ref.child("status").setValueAsync("ERROR");
+            return false;
+        }
     }
 
     private MachineDto mapToDto(Machine machine) {
