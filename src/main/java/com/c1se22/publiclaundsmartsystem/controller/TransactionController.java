@@ -59,4 +59,16 @@ public class TransactionController {
     public ResponseEntity<List<TransactionDto>> getTransactionsByStatus(@PathVariable TransactionStatus status) {
         return ResponseEntity.ok(transactionService.getTransactionsByStatus(status));
     }
+
+    @GetMapping("/type/{type}/status/{status}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<List<TransactionDto>> getTransactionsByTypeAndStatus(
+            @PathVariable String type,
+            @PathVariable String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        return ResponseEntity.ok(transactionService.getTransactionsByTypeAndStatus(type, status, page, size, sortBy, sortDir));
+    }
 }

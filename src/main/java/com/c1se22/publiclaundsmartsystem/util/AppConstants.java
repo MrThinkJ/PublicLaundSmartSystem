@@ -16,4 +16,5 @@ public class AppConstants {
     public static final Integer[] BAN_DURATION = {1, 7, 14};
     public static final Integer MINIMUM_WITHDRAW_AMOUNT = 100000;
     public static final Double SHARING_REVENUE = 0.1;
+    public static final Integer WITHDRAW_DURATION = 30;
 }

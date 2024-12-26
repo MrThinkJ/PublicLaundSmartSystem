@@ -7,11 +7,15 @@ import com.c1se22.publiclaundsmartsystem.enums.TransactionType;
 import com.c1se22.publiclaundsmartsystem.exception.APIException;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
 import com.c1se22.publiclaundsmartsystem.payload.request.OwnerWithdrawInfoRequestDto;
+import com.c1se22.publiclaundsmartsystem.payload.response.TransactionDto;
 import com.c1se22.publiclaundsmartsystem.repository.*;
 import com.c1se22.publiclaundsmartsystem.service.OwnerService;
 import com.c1se22.publiclaundsmartsystem.util.AppConstants;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -96,6 +100,21 @@ public class OwnerServiceImpl implements OwnerService{
     }
 
     @Override
+    public List<TransactionDto> getWithdrawHistory(String username, String sortDir) {
+        User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
+                ()-> new ResourceNotFoundException("User", "username", username));
+        if (user.getRoles().stream().noneMatch(role -> role.getName().equals("ROLE_OWNER"))){
+            throw new APIException(HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN);
+        }
+        Sort sort = Sort.by(sortDir.equalsIgnoreCase(Sort.Direction.DESC.name()) ?
+                Sort.Direction.DESC : Sort.Direction.ASC, "timestamp");
+        Pageable pageable = Pageable.unpaged(sort);
+        return transactionRepository.findByUserUsernameAndType(username, TransactionType.WITHDRAWAL, pageable)
+                .getContent()
+                .stream().map(this::mapToDto).toList();
+    }
+
+    @Override
     public Integer getNumberOfUsingByMonth(int month) {
         Integer ownerId = getOwner().getId();
         List<Machine> machines = machineRepository.findMachinesByOwnerId(ownerId);
@@ -160,6 +179,11 @@ public class OwnerServiceImpl implements OwnerService{
         BigDecimal amount = getAmountCanWithdraw(user.getUsername());
         OwnerWithdrawInfo ownerWithdrawInfo = ownerWithdrawInfoRepository.findByOwnerUsername(user.getUsername())
                 .orElseThrow(()-> new ResourceNotFoundException("OwnerWithdrawInfo", "ownerUsername", user.getUsername()));
+        LocalDate lastWithdrawDate = ownerWithdrawInfo.getLastWithdrawDate();
+        if (lastWithdrawDate != null && lastWithdrawDate.isAfter(LocalDate.now().minusDays(AppConstants.WITHDRAW_DURATION))){
+            log.error("Owner {} cannot withdraw because the last withdraw date is {}", user.getUsername(), lastWithdrawDate);
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.WITHDRAW_INTERVAL, AppConstants.WITHDRAW_DURATION);
+        }
         ownerWithdrawInfo.setPendingLastWithdrawDate(LocalDate.now());
         ownerWithdrawInfoRepository.save(ownerWithdrawInfo);
         transactionRepository.save(Transaction.builder()
@@ -168,8 +192,39 @@ public class OwnerServiceImpl implements OwnerService{
                 .user(user)
                 .status(TransactionStatus.PENDING)
                 .type(TransactionType.WITHDRAWAL)
+                .updatedAt(LocalDateTime.now())
                 .build());
+        log.info("Owner {} withdraws {}", user.getUsername(), amount);
         return true;
+    }
+
+    @Override
+    public Boolean confirmWithdraw(Integer transactionId) {
+        Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(
+                ()-> new ResourceNotFoundException("Transaction", "id", transactionId.toString()));
+        if (transaction.getStatus() != TransactionStatus.PENDING){
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.TRANSACTION_STATUS, transaction.getStatus());
+        }
+        transaction.setStatus(TransactionStatus.COMPLETED);
+        transaction.setUpdatedAt(LocalDateTime.now());
+        transactionRepository.save(transaction);
+        log.info("Transaction {} is confirmed", transactionId);
+        return Boolean.TRUE;
+    }
+
+    @Override
+    public Boolean cancelWithdraw(Integer transactionId, String description) {
+        Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(
+                ()-> new ResourceNotFoundException("Transaction", "id", transactionId.toString()));
+        if (transaction.getStatus() != TransactionStatus.PENDING){
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.TRANSACTION_STATUS, transaction.getStatus());
+        }
+        transaction.setStatus(TransactionStatus.CANCELLED);
+        transaction.setUpdatedAt(LocalDateTime.now());
+        transaction.setDescription(description);
+        transactionRepository.save(transaction);
+        log.info("Transaction {} is cancelled", transactionId);
+        return Boolean.TRUE;
     }
 
     private User getOwner(){
@@ -181,5 +236,17 @@ public class OwnerServiceImpl implements OwnerService{
             throw new ResourceNotFoundException("User", "username", "owner");
         }
         return user;
+    }
+
+    private TransactionDto mapToDto(Transaction transaction) {
+        return TransactionDto.builder()
+                .id(transaction.getId())
+                .amount(transaction.getAmount())
+                .status(transaction.getStatus())
+                .timestamp(transaction.getTimestamp())
+                .userId(transaction.getUser().getId())
+                .userName(transaction.getUser().getUsername())
+                .type(transaction.getType())
+                .build();
     }
 }

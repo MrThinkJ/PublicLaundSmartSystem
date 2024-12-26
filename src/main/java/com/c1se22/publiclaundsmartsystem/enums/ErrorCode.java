@@ -38,7 +38,8 @@ public enum ErrorCode {
     USED_OTP(1308, "OTP has already been used."),
     RESET_TOKEN_EXPIRED(1309, "Password reset token has expired."),
     MINIMUM_AMOUNT(1310, "Minimum amount is %s, your amount is %s."),
-
+    WITHDRAW_INTERVAL(1311, "You can only withdraw once every %s days."),
+    TRANSACTION_STATUS(1312, "Transaction status is %s."),
     // Validation errors (2000-2999)
     FIELD_REQUIRED(2000, "Field is required"),
     FIELD_INVALID_FORMAT(2001, "Invalid format"),
