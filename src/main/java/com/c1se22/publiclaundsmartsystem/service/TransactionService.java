@@ -13,4 +13,6 @@ public interface TransactionService {
   List<TransactionDto> getTransactionsByUserId(Integer userId);
   List<TransactionDto> getTransactionsByUsername(String username);
   List<TransactionDto> getTransactionsByStatus(TransactionStatus status);
+  List<TransactionDto> getTransactionsByTypeAndStatus(String type, String status, int page, int size,
+                                                      String sortBy, String sortDir);
 }

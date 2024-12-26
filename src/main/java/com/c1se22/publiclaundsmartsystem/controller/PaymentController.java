@@ -19,7 +19,6 @@ public class PaymentController {
     PaymentProcessingService paymentProcessingService;
 
     @PostMapping("/create")
-    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<CheckoutResponseDto> createPaymentLink(@RequestBody CreatePaymentLinkRequestBody
                                                                              createPaymentLinkRequestBody) {
         return ResponseEntity.ok(paymentProcessingService.createPaymentLink(createPaymentLinkRequestBody));

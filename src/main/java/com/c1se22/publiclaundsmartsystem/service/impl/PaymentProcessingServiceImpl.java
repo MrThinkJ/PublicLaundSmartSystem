@@ -69,6 +69,7 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                     .type(TransactionType.DEPOSIT)
                     .user(user)
                     .paymentId(data.getPaymentLinkId())
+                    .updatedAt(LocalDateTime.now())
                     .build();
             transactionRepository.save(transaction);
             log.info("Successfully created payment link for user: {}", userDetails.getUsername());
@@ -105,6 +106,8 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
             PaymentLinkData data = payOS.cancelPaymentLink(paymentLinkId, null);
             Transaction transaction = transactionRepository.findByPaymentId(data.getId());
             transaction.setStatus(TransactionStatus.CANCELLED);
+            transaction.setUpdatedAt(LocalDateTime.now());
+            transaction.setDescription("Payment link cancelled");
             transactionRepository.save(transaction);
             notificationService.sendNotification(transaction.getUser().getId(),
                     "Thanh toán của bạn đã bị hủy.");
@@ -160,6 +163,7 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                     return;
                 }
                 transaction.setStatus(TransactionStatus.COMPLETED);
+                transaction.setUpdatedAt(LocalDateTime.now());
                 transactionRepository.save(transaction);
                 User user = transaction.getUser();
                 user.setBalance(user.getBalance().add(BigDecimal.valueOf(data.getAmount())));

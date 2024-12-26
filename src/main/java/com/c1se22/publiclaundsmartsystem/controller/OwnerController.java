@@ -2,6 +2,7 @@ package com.c1se22.publiclaundsmartsystem.controller;
 
 import com.c1se22.publiclaundsmartsystem.payload.request.OwnerWithdrawInfoRequestDto;
 import com.c1se22.publiclaundsmartsystem.service.OwnerService;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -36,6 +37,26 @@ public class OwnerController {
     @PostMapping("/withdraw")
     public ResponseEntity<Boolean> withdraw() {
         return ResponseEntity.ok(ownerService.withdraw());
+    }
+
+    @PutMapping("/withdraw/confirm/{transactionId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Boolean> confirmWithdraw(@PathVariable Integer transactionId) {
+        return ResponseEntity.ok(ownerService.confirmWithdraw(transactionId));
+    }
+
+    @PutMapping("/withdraw/cancel/{transactionId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<Boolean> cancelWithdraw(@PathVariable Integer transactionId, @RequestBody ObjectNode body) {
+        return ResponseEntity.ok(ownerService.cancelWithdraw(transactionId, body.get("reason").asText()));
+    }
+
+    @GetMapping("/withdraw/history")
+    @PreAuthorize("hasRole('ROLE_OWNER')")
+    public ResponseEntity<Object> getWithdrawHistory(Authentication authentication,
+                                                     @RequestParam(defaultValue = "desc") String sortDir) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(ownerService.getWithdrawHistory(userDetails.getUsername(), sortDir));
     }
 
     @GetMapping("/revenue/total")

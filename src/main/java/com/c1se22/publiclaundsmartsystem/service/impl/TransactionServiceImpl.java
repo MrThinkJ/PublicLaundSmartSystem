@@ -2,14 +2,21 @@ package com.c1se22.publiclaundsmartsystem.service.impl;
 
 import com.c1se22.publiclaundsmartsystem.entity.Transaction;
 import com.c1se22.publiclaundsmartsystem.enums.TransactionStatus;
+import com.c1se22.publiclaundsmartsystem.enums.TransactionType;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
 import com.c1se22.publiclaundsmartsystem.payload.response.TransactionDto;
 import com.c1se22.publiclaundsmartsystem.repository.TransactionRepository;
 import com.c1se22.publiclaundsmartsystem.service.TransactionService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,6 +44,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction", "id", id.toString()));
         transaction.setAmount(transactionDto.getAmount());
         transaction.setStatus(transactionDto.getStatus());
+        transaction.setUpdatedAt(LocalDateTime.now());
         Transaction updatedTransaction = transactionRepository.save(transaction);
         return mapToDto(updatedTransaction);  
     }
@@ -64,6 +72,19 @@ public class TransactionServiceImpl implements TransactionService {
     public List<TransactionDto> getTransactionsByStatus(TransactionStatus status) {
         List<Transaction> transactions = transactionRepository.findByStatus(status);
         return transactions.stream().map(this::mapToDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TransactionDto> getTransactionsByTypeAndStatus(String type, String status, int page, int size,
+                                                               String sortBy, String sortDir) {
+        TransactionType transactionType = TransactionType.valueOf(type.toUpperCase());
+        TransactionStatus transactionStatus = TransactionStatus.valueOf(status.toUpperCase());
+        Sort sort = Sort.by(sortDir.equalsIgnoreCase(Sort.Direction.DESC.name()) ?
+                Sort.Direction.DESC : Sort.Direction.ASC, sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Transaction> paging = transactionRepository.findByStatusAndType(
+                transactionStatus, transactionType, pageable);
+        return paging.getContent().stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     private TransactionDto mapToDto(Transaction transaction) {

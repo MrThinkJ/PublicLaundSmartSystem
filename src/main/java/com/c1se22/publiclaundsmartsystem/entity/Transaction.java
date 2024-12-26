@@ -33,6 +33,10 @@ public class Transaction {
     private TransactionType type;
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
+    @Column(name = "description")
+    private String description;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
     @Column(name = "payment_id")
     private String paymentId;
     @ManyToOne(fetch = FetchType.LAZY)

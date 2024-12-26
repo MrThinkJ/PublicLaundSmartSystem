@@ -1,6 +1,7 @@
 package com.c1se22.publiclaundsmartsystem.entity;
 
 import com.c1se22.publiclaundsmartsystem.enums.UsageHistoryStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
@@ -31,8 +32,9 @@ public class UsageHistory {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private UsageHistoryStatus status;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "machine_id")
+    @JsonIgnore
     private Machine machine;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
