@@ -12,10 +12,7 @@ import com.c1se22.publiclaundsmartsystem.payload.request.ReservationCreateDto;
 import com.c1se22.publiclaundsmartsystem.payload.internal.ReservationDto;
 import com.c1se22.publiclaundsmartsystem.payload.response.ReservationResponseDto;
 import com.c1se22.publiclaundsmartsystem.payload.response.UsageHistoryDto;
-import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
-import com.c1se22.publiclaundsmartsystem.repository.ReservationRepository;
-import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
-import com.c1se22.publiclaundsmartsystem.repository.WashingTypeRepository;
+import com.c1se22.publiclaundsmartsystem.repository.*;
 import com.c1se22.publiclaundsmartsystem.service.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.java.Log;
@@ -24,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,6 +36,7 @@ public class ReservationServiceImpl implements ReservationService {
     UserRepository userRepository;
     MachineRepository machineRepository;
     WashingTypeRepository washingTypeRepository;
+    OwnerWithdrawInfoRepository ownerWithdrawInfoRepository;
     MachineService machineService;
     UsageHistoryService usageHistoryService;
     EventService eventService;
@@ -92,6 +91,7 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     @Loggable
     public ReservationResponseDto createReservation(String username, ReservationCreateDto reservationDto) {
         log.info("Creating reservation for user: {}, machine ID: {}", 
@@ -163,6 +163,7 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     @Loggable
+    @Transactional(rollbackFor = Exception.class)
     public ReservationResponseDto completeReservation(String username) {
         User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
                 () -> new ResourceNotFoundException("User", "username", username)
@@ -191,6 +192,10 @@ public class ReservationServiceImpl implements ReservationService {
         userRepository.save(user);
         Machine machine = savedReservation.getMachine();
         machineService.updateMachineStatus(machine.getId(), "IN_USE");
+        OwnerWithdrawInfo ownerWithdrawInfo = ownerWithdrawInfoRepository.findByOwnerUsername(machine.getUser().getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("OwnerWithdrawInfo", "ownerUsername", machine.getUser().getUsername()));
+        ownerWithdrawInfo.setWithdrawAmount(ownerWithdrawInfo.getWithdrawAmount().add(savedReservation.getWashingType().getDefaultPrice()));
+        ownerWithdrawInfoRepository.save(ownerWithdrawInfo);
         log.info("Successfully completed reservation with ID: {}", savedReservation.getId());
         return mapToResponseDto(savedReservation);
     }

@@ -41,6 +41,7 @@ public class SecurityConfig {
                         authorize.requestMatchers("/api/auth/login",
                                         "/api/auth/register",
                                         "/api/password/**",
+                                        "/api/machines/error/**",
                                         "/api/payments/**").permitAll()
                                 .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))

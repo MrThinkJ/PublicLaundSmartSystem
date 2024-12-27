@@ -1,19 +1,13 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
 import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
-import com.c1se22.publiclaundsmartsystem.entity.Machine;
-import com.c1se22.publiclaundsmartsystem.entity.UsageHistory;
-import com.c1se22.publiclaundsmartsystem.entity.User;
-import com.c1se22.publiclaundsmartsystem.entity.WashingType;
+import com.c1se22.publiclaundsmartsystem.entity.*;
 import com.c1se22.publiclaundsmartsystem.enums.UsageHistoryStatus;
 import com.c1se22.publiclaundsmartsystem.event.WashingNearCompleteEvent;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
 import com.c1se22.publiclaundsmartsystem.payload.response.UsageHistoryDto;
 import com.c1se22.publiclaundsmartsystem.payload.response.UserUsageDto;
-import com.c1se22.publiclaundsmartsystem.repository.MachineRepository;
-import com.c1se22.publiclaundsmartsystem.repository.UsageHistoryRepository;
-import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
-import com.c1se22.publiclaundsmartsystem.repository.WashingTypeRepository;
+import com.c1se22.publiclaundsmartsystem.repository.*;
 import com.c1se22.publiclaundsmartsystem.service.EventService;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
 import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
@@ -40,6 +34,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
     UsageHistoryRepository usageHistoryRepository;
     MachineRepository machineRepository;
     WashingTypeRepository washingTypeRepository;
+    OwnerWithdrawInfoRepository ownerWithdrawInfoRepository;
     UserRepository userRepository;
     MachineService machineService;
     EventService eventService;
@@ -79,8 +74,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
             Machine machine = machineRepository.findById(usageHistoryDto.getMachineId()).orElseThrow(
                     () -> new ResourceNotFoundException("Machine", "id", usageHistoryDto.getMachineId().toString())
             );
-
-            WashingType washingType = washingTypeRepository.findById(usageHistoryDto.getWashingTypeId()).orElseThrow(   
+            WashingType washingType = washingTypeRepository.findById(usageHistoryDto.getWashingTypeId()).orElseThrow(
                     () -> new ResourceNotFoundException("WashingType", "id", usageHistoryDto.getWashingTypeId().toString())
             );
             usageHistory.setEndTime(usageHistory.getStartTime().plusMinutes(washingType.getDefaultDuration()));
@@ -93,8 +87,9 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
             usageHistory.setUser(user);
             usageHistory.setStatus(UsageHistoryStatus.IN_PROGRESS);
             UsageHistory newUsageHistory = usageHistoryRepository.save(usageHistory);
+
             firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId()).child("duration")
-                    .setValueAsync(washingType.getDefaultDuration().toString());
+                    .setValueAsync(washingType.getDefaultDuration());
             eventService.publishEvent(new WashingNearCompleteEvent(newUsageHistory, washingType.getDefaultDuration()));
             log.info("Successfully created usage history with ID: {}", newUsageHistory.getUsageId());
         } catch (Exception e) {

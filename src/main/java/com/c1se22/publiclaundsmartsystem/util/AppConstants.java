@@ -14,7 +14,7 @@ public class AppConstants {
     public static final Integer MAX_MONTHLY_CANCEL_RESERVATION = 3;
     public static final Integer MAX_BAN_BEFORE_DELETE = 3;
     public static final Integer[] BAN_DURATION = {1, 7, 14};
-    public static final Integer MINIMUM_WITHDRAW_AMOUNT = 100000;
+    public static final BigDecimal MINIMUM_WITHDRAW_AMOUNT = BigDecimal.valueOf(1000000);
     public static final Double SHARING_REVENUE = 0.1;
     public static final Integer WITHDRAW_DURATION = 30;
 }

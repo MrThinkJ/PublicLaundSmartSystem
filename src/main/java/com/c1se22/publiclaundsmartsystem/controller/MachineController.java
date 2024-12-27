@@ -72,8 +72,7 @@ public class MachineController {
         return ResponseEntity.ok(machineService.getMachineAreBeingReservedByUser(userDetails.getUsername()));
     }
 
-    @PatchMapping("/error/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @PostMapping("/error/{id}")
     public ResponseEntity<Boolean> updateMachineErrorStatus(@PathVariable String id) {
         machineService.updateMachineErrorStatus(id);
         return ResponseEntity.ok(true);

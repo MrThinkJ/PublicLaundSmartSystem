@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "owner_withdraw_infos")
@@ -34,6 +34,8 @@ public class OwnerWithdrawInfo {
     private LocalDate lastWithdrawDate;
     @Column(name = "pending_last_withdraw")
     private LocalDate pendingLastWithdrawDate;
+    @Column(name = "withdraw_amount", columnDefinition = "DECIMAL(10,2)", nullable = false)
+    private BigDecimal withdrawAmount;
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User owner;

@@ -22,6 +22,7 @@ import java.util.Set;
 public class LocationServiceImpl implements LocationService {
     LocationRepository locationRepository;
     MachineRepository machineRepository;
+
     @Override
     public List<LocationSummaryDto> getAllLocations() {
         return locationRepository.findAll().stream().map(this::mapToLocationSummaryDto).toList();
@@ -75,6 +76,7 @@ public class LocationServiceImpl implements LocationService {
     }
 
     private LocationSummaryDto mapToLocationSummaryDto(Location location) {
+        Set<Machine> machines = machineRepository.findByLocationId(location.getId());
         return LocationSummaryDto.builder()
                 .id(location.getId())
                 .name(location.getName())
@@ -84,8 +86,8 @@ public class LocationServiceImpl implements LocationService {
                 .city(location.getCity())
                 .district(location.getDistrict())
                 .ward(location.getWard())
-                .machineCount(location.getMachines().size())
-                .machineIds(location.getMachines().stream().map(Machine::getId).toList())
+                .machineCount(machines.size())
+                .machineIds(machines.stream().map(Machine::getId).toList())
                 .build();
     }
 

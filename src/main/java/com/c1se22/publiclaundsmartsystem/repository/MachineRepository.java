@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface MachineRepository extends JpaRepository<Machine, Integer> {
@@ -21,7 +22,10 @@ public interface MachineRepository extends JpaRepository<Machine, Integer> {
     Optional<Machine> findMachineAreBeingReservedByUser(@Param("userId") Integer userId);
     @Query(value = "select m from Machine m where m.user.id = :ownerId")
     List<Machine> findMachinesByOwnerId(@Param("ownerId") Integer ownerId);
-
+    @Modifying
+    @Query(value = "update Machine as m set m.status = 'DISABLED' where m.id in :machineIds")
+    int disableMultipleMachine(@Param("machineIds") List<Integer> machineIds);
+    Set<Machine> findByLocationId(Integer locationId);
     boolean existsBySecretId(String secretId);
     Optional<Machine> findBySecretId(String secretId);
 }
