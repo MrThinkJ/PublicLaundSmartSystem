@@ -2,6 +2,7 @@ package com.c1se22.publiclaundsmartsystem.repository;
 
 import com.c1se22.publiclaundsmartsystem.entity.Machine;
 import com.c1se22.publiclaundsmartsystem.entity.UsageHistory;
+import com.c1se22.publiclaundsmartsystem.enums.UsageHistoryStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -46,4 +47,5 @@ public interface UsageHistoryRepository extends JpaRepository<UsageHistory, Inte
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
     List<UsageHistory> findAllByUserUsername(String username);
+    UsageHistory findByMachineIdAndStatus(Integer machineId, UsageHistoryStatus status);
 }

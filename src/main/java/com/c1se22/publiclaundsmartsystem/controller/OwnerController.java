@@ -35,8 +35,8 @@ public class OwnerController {
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<Boolean> withdraw() {
-        return ResponseEntity.ok(ownerService.withdraw());
+    public ResponseEntity<Boolean> withdraw(@RequestBody ObjectNode body) {
+        return ResponseEntity.ok(ownerService.withdraw(body.get("amount").decimalValue()));
     }
 
     @PutMapping("/withdraw/confirm/{transactionId}")
@@ -49,6 +49,12 @@ public class OwnerController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Boolean> cancelWithdraw(@PathVariable Integer transactionId, @RequestBody ObjectNode body) {
         return ResponseEntity.ok(ownerService.cancelWithdraw(transactionId, body.get("reason").asText()));
+    }
+
+    @GetMapping("/withdraw/amount")
+    public ResponseEntity<BigDecimal> getWithdrawAmount(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return ResponseEntity.ok(ownerService.getAmountCanWithdraw(userDetails.getUsername()));
     }
 
     @GetMapping("/withdraw/history")

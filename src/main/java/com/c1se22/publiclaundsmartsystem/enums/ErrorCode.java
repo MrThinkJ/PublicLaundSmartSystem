@@ -14,6 +14,7 @@ public enum ErrorCode {
     USER_DELETED(1005, "User %s is deleted"),
     RESOURCE_EXISTS(1006, "%s already exists"),
     FORBIDDEN(1007, "Forbidden access"),
+    CAN_NOT_DELETE(1008, "Can not delete %s"),
 
     // Authentication errors (1100-1199)
     UNAUTHORIZED(1100, "Unauthorized access"),
@@ -40,6 +41,8 @@ public enum ErrorCode {
     MINIMUM_AMOUNT(1310, "Minimum amount is %s, your amount is %s."),
     WITHDRAW_INTERVAL(1311, "You can only withdraw once every %s days."),
     TRANSACTION_STATUS(1312, "Transaction status is %s."),
+    ACCOUNT_INFO(1313, "Account information is incomplete."),
+    MACHINE_IN_USE(1314, "Machine %s is currently in use."),
     // Validation errors (2000-2999)
     FIELD_REQUIRED(2000, "Field is required"),
     FIELD_INVALID_FORMAT(2001, "Invalid format"),

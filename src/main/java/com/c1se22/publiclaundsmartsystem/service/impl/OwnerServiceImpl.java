@@ -1,5 +1,6 @@
 package com.c1se22.publiclaundsmartsystem.service.impl;
 
+import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
 import com.c1se22.publiclaundsmartsystem.entity.*;
 import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
 import com.c1se22.publiclaundsmartsystem.enums.TransactionStatus;
@@ -26,6 +27,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
@@ -38,6 +40,7 @@ public class OwnerServiceImpl implements OwnerService{
     OwnerWithdrawInfoRepository ownerWithdrawInfoRepository;
     TransactionRepository transactionRepository;
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateUserToOwner(String username) {
         User user = userRepository.findByUsernameOrEmail(username, username).orElseThrow(
                 ()-> new ResourceNotFoundException("User", "username", username));
@@ -45,6 +48,15 @@ public class OwnerServiceImpl implements OwnerService{
                 ()-> new ResourceNotFoundException("Role", "name", "ROLE_OWNER"));
         user.getRoles().add(role);
         userRepository.save(user);
+        OwnerWithdrawInfo ownerWithdrawInfo = OwnerWithdrawInfo.builder()
+                .bankName("")
+                .accountNumber("")
+                .accountName("")
+                .lastWithdrawDate(null)
+                .owner(user)
+                .withdrawAmount(BigDecimal.ZERO)
+                .build();
+        ownerWithdrawInfoRepository.save(ownerWithdrawInfo);
         log.info("User {} is updated to owner", username);
     }
 
@@ -151,40 +163,44 @@ public class OwnerServiceImpl implements OwnerService{
                         .accountName(requestDto.getAccountName())
                         .lastWithdrawDate(null)
                         .owner(user)
+                        .withdrawAmount(BigDecimal.ZERO)
                         .build())
         );
         return true;
     }
 
-    private BigDecimal getAmountCanWithdraw(String username) {
+    @Override
+    public BigDecimal getAmountCanWithdraw(String username) {
         OwnerWithdrawInfo ownerWithdrawInfo = ownerWithdrawInfoRepository.findByOwnerUsername(username)
                 .orElseThrow(()-> new ResourceNotFoundException("OwnerWithdrawInfo", "ownerUsername", username));
-        BigDecimal totalRevenue;
-        if (ownerWithdrawInfo.getLastWithdrawDate() == null)
-            totalRevenue = getRevenueBeforeDate(LocalDate.now());
-        else
-            totalRevenue = getRevenueByDateRange(ownerWithdrawInfo.getLastWithdrawDate(), LocalDate.now());
-        totalRevenue = totalRevenue.multiply(BigDecimal.valueOf(AppConstants.SHARING_REVENUE));
-        if (totalRevenue.compareTo(BigDecimal.valueOf(AppConstants.MINIMUM_WITHDRAW_AMOUNT)) < 0){
-            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.MINIMUM_AMOUNT,
-                    AppConstants.MINIMUM_WITHDRAW_AMOUNT, totalRevenue);
-        }
-        return totalRevenue;
+        return ownerWithdrawInfo.getWithdrawAmount();
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean withdraw() {
+    @Loggable
+    public Boolean withdraw(BigDecimal amount) {
         User user = getOwner();
-        BigDecimal amount = getAmountCanWithdraw(user.getUsername());
         OwnerWithdrawInfo ownerWithdrawInfo = ownerWithdrawInfoRepository.findByOwnerUsername(user.getUsername())
                 .orElseThrow(()-> new ResourceNotFoundException("OwnerWithdrawInfo", "ownerUsername", user.getUsername()));
+        if (amount.compareTo(AppConstants.MINIMUM_WITHDRAW_AMOUNT) < 0){
+            log.error("Owner {} cannot withdraw because the amount is {}", user.getUsername(), amount);
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.MINIMUM_AMOUNT,
+                    AppConstants.MINIMUM_WITHDRAW_AMOUNT, amount);
+        }
+        if (Objects.equals(ownerWithdrawInfo.getAccountName(), "") ||
+                Objects.equals(ownerWithdrawInfo.getAccountNumber(), "") ||
+                Objects.equals(ownerWithdrawInfo.getBankName(), "")){
+            log.error("Owner {} cannot withdraw because the account information is not completed", user.getUsername());
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.ACCOUNT_INFO);
+        }
         LocalDate lastWithdrawDate = ownerWithdrawInfo.getLastWithdrawDate();
         if (lastWithdrawDate != null && lastWithdrawDate.isAfter(LocalDate.now().minusDays(AppConstants.WITHDRAW_DURATION))){
             log.error("Owner {} cannot withdraw because the last withdraw date is {}", user.getUsername(), lastWithdrawDate);
             throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.WITHDRAW_INTERVAL, AppConstants.WITHDRAW_DURATION);
         }
         ownerWithdrawInfo.setPendingLastWithdrawDate(LocalDate.now());
+        ownerWithdrawInfo.setWithdrawAmount(ownerWithdrawInfo.getWithdrawAmount().subtract(amount));
         ownerWithdrawInfoRepository.save(ownerWithdrawInfo);
         transactionRepository.save(Transaction.builder()
                 .amount(amount)
@@ -199,6 +215,8 @@ public class OwnerServiceImpl implements OwnerService{
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Loggable
     public Boolean confirmWithdraw(Integer transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(
                 ()-> new ResourceNotFoundException("Transaction", "id", transactionId.toString()));
@@ -213,6 +231,8 @@ public class OwnerServiceImpl implements OwnerService{
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Loggable
     public Boolean cancelWithdraw(Integer transactionId, String description) {
         Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(
                 ()-> new ResourceNotFoundException("Transaction", "id", transactionId.toString()));
@@ -224,6 +244,11 @@ public class OwnerServiceImpl implements OwnerService{
         transaction.setDescription(description);
         transactionRepository.save(transaction);
         log.info("Transaction {} is cancelled", transactionId);
+        OwnerWithdrawInfo ownerWithdrawInfo = ownerWithdrawInfoRepository.findByOwnerUsername(transaction.getUser().getUsername())
+                .orElseThrow(()-> new ResourceNotFoundException("OwnerWithdrawInfo", "ownerUsername", transaction.getUser().getUsername()));
+        ownerWithdrawInfo.setWithdrawAmount(ownerWithdrawInfo.getWithdrawAmount().add(transaction.getAmount()));
+        ownerWithdrawInfoRepository.save(ownerWithdrawInfo);
+        log.info("Owner {} is refunded {}", transaction.getUser().getUsername(), transaction.getAmount());
         return Boolean.TRUE;
     }
 

@@ -20,7 +20,8 @@ public interface OwnerService {
     Integer getNumberOfUsingByMonth(int month);
     Integer getNumberOfUsingByYear(int year);
     Boolean updateWithdrawInfo(OwnerWithdrawInfoRequestDto requestDto);
-    Boolean withdraw();
+    BigDecimal getAmountCanWithdraw(String username);
+    Boolean withdraw(BigDecimal amount);
     Boolean confirmWithdraw(Integer transactionId);
     Boolean cancelWithdraw(Integer transactionId, String description);
 }

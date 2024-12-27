@@ -146,6 +146,9 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                     .build();
             WebhookData data = payOS.verifyPaymentWebhookData(webhookBody);
             if (webhookBody.getSuccess()){
+                if (data.getOrderCode() == 123){
+                    return;
+                }
                 PaymentLinkData paymentLinkData = payOS.getPaymentLinkInformation(data.getOrderCode());
                 if (paymentLinkData == null){
                     log.error("Payment link not found for order code: {}", data.getOrderCode());
@@ -156,7 +159,7 @@ public class PaymentProcessingServiceImpl implements PaymentProcessingService {
                     log.error("Transaction not found for payment link: {}", data.getPaymentLinkId());
                     throw new ResourceNotFoundException("Transaction", "paymentId", data.getPaymentLinkId());
                 }
-                if (paymentLinkData.getAmountRemaining() > 0){
+                if (data.getAmount() < transaction.getAmount().doubleValue()){
                     notificationService.sendNotification(transaction.getUser().getId(),
                             "Bạn chưa thanh toán đủ số tiền, vui lòng thanh toán thêm.");
                     log.error("Payment link amount remaining is greater than 0 for order code: {}", data.getOrderCode());

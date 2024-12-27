@@ -3,6 +3,10 @@ package com.c1se22.publiclaundsmartsystem.service.impl;
 import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
 import com.c1se22.publiclaundsmartsystem.entity.*;
 import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
+import com.c1se22.publiclaundsmartsystem.enums.ReservationStatus;
+import com.c1se22.publiclaundsmartsystem.enums.UsageHistoryStatus;
+import com.c1se22.publiclaundsmartsystem.event.handler.WashingCompleteEventHandler;
+import com.c1se22.publiclaundsmartsystem.event.handler.WashingNearCompleteEventHandler;
 import com.c1se22.publiclaundsmartsystem.exception.APIException;
 import com.c1se22.publiclaundsmartsystem.payload.internal.FirebaseMachine;
 import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
@@ -12,6 +16,7 @@ import com.c1se22.publiclaundsmartsystem.payload.response.MachineAndTimeDto;
 import com.c1se22.publiclaundsmartsystem.payload.request.MachineDto;
 import com.c1se22.publiclaundsmartsystem.repository.*;
 import com.c1se22.publiclaundsmartsystem.service.MachineService;
+import com.c1se22.publiclaundsmartsystem.service.NotificationService;
 import com.c1se22.publiclaundsmartsystem.service.OwnerService;
 import com.google.firebase.database.*;
 import lombok.AllArgsConstructor;
@@ -43,10 +48,14 @@ public class MachineServiceImpl implements MachineService{
     MachineRepository machineRepository;
     LocationRepository locationRepository;
     UsageHistoryRepository usageHistoryRepository;
+    ReservationRepository reservationRepository;
     UserRepository userRepository;
+    NotificationService notificationService;
     RoleRepository roleRepository;
     OwnerService ownerService;
     FirebaseDatabase firebaseDatabase;
+    WashingCompleteEventHandler washingCompleteEventHandler;
+    WashingNearCompleteEventHandler washingNearCompleteEventHandler;
 
     public MachineServiceImpl(MachineRepository machineRepository,
                               LocationRepository locationRepository,
@@ -158,9 +167,21 @@ public class MachineServiceImpl implements MachineService{
     public void deleteMachine(Integer id) {
         Machine machine = machineRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Machine", "id", id.toString()));
-        machineRepository.delete(machine);
-        firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId()).removeValueAsync();
-        log.info("Machine {} has been deleted", id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userRepository.findByUsernameOrEmail(authentication.getName(), authentication.getName()).orElseThrow(() ->
+                new ResourceNotFoundException("User", "username", authentication.getName()));
+        if (!machine.getUser().getId().equals(user.getId()))
+            throw new APIException(HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN);
+        UsageHistory usageHistories = usageHistoryRepository.findByMachineIdAndStatus(id, UsageHistoryStatus.IN_PROGRESS);
+        if (usageHistories != null)
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.MACHINE_IN_USE);
+        Reservation reservation = reservationRepository.findByMachineIdAndStatus(id, ReservationStatus.PENDING);
+        if (reservation != null)
+            throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.MACHINE_NOT_AVAILABLE);
+        machine.setStatus(MachineStatus.DISABLED);
+        firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId())
+                .setValueAsync(MachineStatus.DISABLED.name());
+        log.info("Machine {} has been disabled", id);
     }
 
     @Override
@@ -209,29 +230,34 @@ public class MachineServiceImpl implements MachineService{
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Loggable
     public void updateMachineErrorStatus(String id) {
+        log.info("Updating machine {} status to ERROR", id);
         Machine machine = machineRepository.findBySecretId(id).orElseThrow(() ->
                 new ResourceNotFoundException("Machine", "id", id));
-        CompletableFuture<String> future = new CompletableFuture<>();
-        String path = "machines/" + id + "/status";
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference(path);
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String value = dataSnapshot.getValue(String.class);
-                future.complete(value);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                future.completeExceptionally(error.toException());
-            }
-        });
-        String result = future.join();
-        if (result != null) {
-            MachineStatus machineStatus = MachineStatus.valueOf(result.toUpperCase());
-            machine.setStatus(machineStatus);
-            machineRepository.save(machine);
+        MachineStatus machineStatus = MachineStatus.ERROR;
+        machine.setStatus(machineStatus);
+        Machine updatedMachine = machineRepository.save(machine);
+        firebaseDatabase.getReference("WashingMachineList").child(updatedMachine.getSecretId())
+                .child("status").setValueAsync(machineStatus.name());
+        UsageHistory usageHistory = usageHistoryRepository.findByMachineIdAndStatus(updatedMachine.getId(),
+                UsageHistoryStatus.IN_PROGRESS);
+        if (usageHistory != null) {
+            usageHistory.setStatus(UsageHistoryStatus.FAILED);
+            usageHistoryRepository.save(usageHistory);
+            log.info("UsageHistory {} status has been updated to FAILED", usageHistory.getUsageId());
+            washingCompleteEventHandler.cancelTask("complete-" + usageHistory.getUsageId());
+            washingNearCompleteEventHandler.cancelTask("near-complete-" + usageHistory.getUsageId());
+            log.info("Scheduled tasks for usageHistory {} have been cancelled", usageHistory.getUsageId());
+            User user = userRepository.findById(usageHistory.getUser().getId()).orElseThrow(() ->
+                    new ResourceNotFoundException("User", "id", usageHistory.getUser().getId().toString()));
+            user.setBalance(user.getBalance().add(usageHistory.getCost()));
+            userRepository.save(user);
+            log.info("User {} balance has been updated to {}", user.getId(), user.getBalance());
+            notificationService.sendNotification(user.getId(),
+                    "Máy " + updatedMachine.getName() + " đã ngừng hoạt động, xin lỗi vì sự bất tiện này. Số tiền " +
+                            usageHistory.getCost() + " đã được hoàn lại. Hãy tới trạm để lấy quần áo của bạn.");
         }
         log.info("Machine {} status has been updated to ERROR", id);
     }
