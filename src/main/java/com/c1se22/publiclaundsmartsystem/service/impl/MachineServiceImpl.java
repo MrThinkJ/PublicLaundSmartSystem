@@ -35,6 +35,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -253,6 +254,9 @@ public class MachineServiceImpl implements MachineService{
         Machine updatedMachine = machineRepository.save(machine);
         firebaseDatabase.getReference("WashingMachineList").child(updatedMachine.getSecretId())
                 .child("status").setValueAsync(machineStatus.name());
+        User owner = userRepository.findById(updatedMachine.getUser().getId()).orElseThrow(() ->
+                new ResourceNotFoundException("User", "id", updatedMachine.getUser().getId().toString()));
+        notificationService.sendNotification(owner.getId(), "Máy " + updatedMachine.getName() + " đã ngừng hoạt động, vui lòng kiểm tra.");
         Reservation reservation = reservationRepository.findByMachineIdAndStatus(updatedMachine.getId(), ReservationStatus.PENDING);
         if (reservation != null) {
             reservation.setStatus(ReservationStatus.ARCHIVED);
@@ -282,7 +286,7 @@ public class MachineServiceImpl implements MachineService{
             log.info("User {} balance has been updated to {}", user.getId(), user.getBalance());
             notificationService.sendNotification(user.getId(),
                     "Máy " + updatedMachine.getName() + " đã ngừng hoạt động, xin lỗi vì sự bất tiện này. Số tiền " +
-                            usageHistory.getCost() + " đã được hoàn lại. Hãy tới trạm để lấy quần áo của bạn.");
+                            usageHistory.getCost().toPlainString() + " đã được hoàn lại. Hãy tới trạm để lấy quần áo của bạn.");
         }
         log.info("Machine {} status has been updated to ERROR", id);
     }
