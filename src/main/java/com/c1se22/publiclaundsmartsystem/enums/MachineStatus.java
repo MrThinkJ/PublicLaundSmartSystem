@@ -6,5 +6,6 @@ public enum MachineStatus {
     RESERVED,
     UNDER_MAINTENANCE,
     ERROR,
-    DISABLED
+    DISABLED,
+    FINISH
 }

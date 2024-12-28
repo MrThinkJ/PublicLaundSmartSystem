@@ -1,7 +1,9 @@
 package com.c1se22.publiclaundsmartsystem.event.handler;
 
 import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
+import com.c1se22.publiclaundsmartsystem.event.WaitMachineEvent;
 import com.c1se22.publiclaundsmartsystem.event.WashingCompleteEvent;
+import com.c1se22.publiclaundsmartsystem.service.EventService;
 import com.c1se22.publiclaundsmartsystem.service.NotificationService;
 import com.c1se22.publiclaundsmartsystem.service.UsageHistoryService;
 import lombok.AllArgsConstructor;
@@ -23,6 +25,7 @@ import java.util.Map;
 @Slf4j
 public class WashingCompleteEventHandler {
     TaskScheduler scheduler;
+    EventService eventService;
     UsageHistoryService usageHistoryService;
     NotificationService notificationService;
     private final Map<String, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
@@ -43,6 +46,7 @@ public class WashingCompleteEventHandler {
                 notificationService.sendNotification(event.getUsageHistory().getUser().getId(),
                         String.format("Máy %s đã giặt xong. Hãy lấy quần áo của bạn.",
                                 event.getUsageHistory().getMachine().getName()));
+                eventService.publishEvent(new WaitMachineEvent(event.getUsageHistory().getMachine().getId(), 5));
                 scheduledTasks.remove(taskId);
             };
             
