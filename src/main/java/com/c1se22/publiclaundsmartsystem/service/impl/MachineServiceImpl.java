@@ -321,40 +321,53 @@ public class MachineServiceImpl implements MachineService{
     public boolean checkMachineRTStatus(Integer id) {
         Machine machine = machineRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Machine", "id", id.toString()));
+            
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         DatabaseReference ref = firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId());
-        ref.child("status").setValueAsync("CHECK");
-        ref.child("RealtimeStatus").addListenerForSingleValueEvent(new ValueEventListener() {
+        
+        ValueEventListener listener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String rtStatus = dataSnapshot.getValue(String.class);
-                future.complete(rtStatus != null && rtStatus.equals("READY"));
+                if ("READY".equals(rtStatus)) {
+                    future.complete(true);
+                    ref.child("RealtimeStatus").removeEventListener(this);
+                } else if (rtStatus != null && !"OFF".equals(rtStatus)) {
+                    // Don't complete the future yet if we get a non-READY status
+                    log.debug("Received status: {} for machine {}", rtStatus, id);
+                }
             }
+            
             @Override
             public void onCancelled(DatabaseError error) {
                 future.completeExceptionally(error.toException());
-                machine.setStatus(MachineStatus.ERROR);
-                machineRepository.save(machine);
-                ref.child("status").setValueAsync("ERROR");
-                ref.child("RealtimeStatus").setValueAsync("ERROR");
                 log.error("Error checking machine RT status: {}", error.getMessage());
             }
-        });
+        };
+        
+        // Add listener before setting status
+        ref.child("RealtimeStatus").addValueEventListener(listener);
+        ref.child("status").setValueAsync("CHECK");
+        
         try {
+            // Wait up to 5 seconds for READY response
             boolean isWorking = future.get(5, TimeUnit.SECONDS);
-            if (!isWorking) {
-                machine.setStatus(MachineStatus.ERROR);
-                machineRepository.save(machine);
-                ref.child("status").setValueAsync("ERROR");
-                ref.child("RealtimeStatus").setValueAsync("ERROR");
-                log.warn("Machine {} is not responding", id);
-            } else {
+            
+            if (isWorking) {
                 ref.child("status").setValueAsync(machine.getStatus().toString());
                 ref.child("RealtimeStatus").setValueAsync("OFF");
                 log.info("Machine {} is working properly", id);
+            } else {
+                machine.setStatus(MachineStatus.ERROR);
+                machineRepository.save(machine);
+                ref.child("status").setValueAsync("ERROR");
+                log.warn("Machine {} did not respond with READY status within timeout", id);
             }
             return isWorking;
+            
         } catch (Exception e) {
+            // Cleanup and handle timeout/error
+            ref.child("RealtimeStatus").removeEventListener(listener);
             log.error("Error while checking machine status: {}", e.getMessage());
             machine.setStatus(MachineStatus.ERROR);
             machineRepository.save(machine);
