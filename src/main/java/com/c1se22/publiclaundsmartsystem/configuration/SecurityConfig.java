@@ -42,6 +42,7 @@ public class SecurityConfig {
                                         "/api/auth/register",
                                         "/api/password/**",
                                         "/api/machines/error/**",
+                                        "/api/machines/active/**",
                                         "/api/payments/**").permitAll()
                                 .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
