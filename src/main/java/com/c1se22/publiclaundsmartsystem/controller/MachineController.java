@@ -78,6 +78,12 @@ public class MachineController {
         return ResponseEntity.ok(true);
     }
 
+    @PostMapping("/active/{id}")
+    public ResponseEntity<Boolean> updateMachineActiveStatus(@PathVariable String id) {
+        machineService.updateMachineActiveStatus(id);
+        return ResponseEntity.ok(true);
+    }
+
     @GetMapping("/owner/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ResponseEntity<List<MachineDto>> getMachinesByOwnerId(@PathVariable Integer id) {
