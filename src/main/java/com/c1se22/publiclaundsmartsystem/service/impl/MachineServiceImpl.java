@@ -5,6 +5,7 @@ import com.c1se22.publiclaundsmartsystem.entity.*;
 import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
 import com.c1se22.publiclaundsmartsystem.enums.ReservationStatus;
 import com.c1se22.publiclaundsmartsystem.enums.UsageHistoryStatus;
+import com.c1se22.publiclaundsmartsystem.event.handler.ReservationEventHandler;
 import com.c1se22.publiclaundsmartsystem.event.handler.WashingCompleteEventHandler;
 import com.c1se22.publiclaundsmartsystem.event.handler.WashingNearCompleteEventHandler;
 import com.c1se22.publiclaundsmartsystem.exception.APIException;
@@ -56,21 +57,32 @@ public class MachineServiceImpl implements MachineService{
     FirebaseDatabase firebaseDatabase;
     WashingCompleteEventHandler washingCompleteEventHandler;
     WashingNearCompleteEventHandler washingNearCompleteEventHandler;
+    ReservationEventHandler reservationEventHandler;
 
     public MachineServiceImpl(MachineRepository machineRepository,
                               LocationRepository locationRepository,
                               UsageHistoryRepository usageHistoryRepository,
+                              ReservationRepository reservationRepository,
                               UserRepository userRepository,
                               RoleRepository roleRepository,
                               OwnerService ownerService,
-                              FirebaseDatabase firebaseDatabase) {
+                              FirebaseDatabase firebaseDatabase,
+                              NotificationService notificationService,
+                              WashingCompleteEventHandler washingCompleteEventHandler,
+                              WashingNearCompleteEventHandler washingNearCompleteEventHandler,
+                              ReservationEventHandler reservationEventHandler) {
         this.machineRepository = machineRepository;
         this.locationRepository = locationRepository;
         this.usageHistoryRepository = usageHistoryRepository;
         this.userRepository = userRepository;
+        this.reservationRepository = reservationRepository;
         this.roleRepository = roleRepository;
         this.ownerService = ownerService;
         this.firebaseDatabase = firebaseDatabase;
+        this.notificationService = notificationService;
+        this.washingCompleteEventHandler = washingCompleteEventHandler;
+        this.washingNearCompleteEventHandler = washingNearCompleteEventHandler;
+        this.reservationEventHandler = reservationEventHandler;
     }
 
     @Override
@@ -241,6 +253,19 @@ public class MachineServiceImpl implements MachineService{
         Machine updatedMachine = machineRepository.save(machine);
         firebaseDatabase.getReference("WashingMachineList").child(updatedMachine.getSecretId())
                 .child("status").setValueAsync(machineStatus.name());
+        Reservation reservation = reservationRepository.findByMachineIdAndStatus(updatedMachine.getId(), ReservationStatus.PENDING);
+        if (reservation != null) {
+            reservation.setStatus(ReservationStatus.ARCHIVED);
+            reservationRepository.save(reservation);
+            log.info("Reservation {} status has been updated to CANCELLED", reservation.getId());
+            reservationEventHandler.cancelTask("reservation-" + reservation.getId());
+            User user = userRepository.findById(reservation.getUser().getId()).orElseThrow(() ->
+                    new ResourceNotFoundException("User", "id", reservation.getUser().getId().toString()));
+            notificationService.sendNotification(user.getId(),
+                    "Máy " + updatedMachine.getName() + " đã ngừng hoạt động, xin lỗi vì sự bất tiện này. Đơn đặt hàng của bạn đã bị hủy.");
+            log.info("Machine {} status has been updated to ERROR", id);
+            return;
+        }
         UsageHistory usageHistory = usageHistoryRepository.findByMachineIdAndStatus(updatedMachine.getId(),
                 UsageHistoryStatus.IN_PROGRESS);
         if (usageHistory != null) {
@@ -260,6 +285,23 @@ public class MachineServiceImpl implements MachineService{
                             usageHistory.getCost() + " đã được hoàn lại. Hãy tới trạm để lấy quần áo của bạn.");
         }
         log.info("Machine {} status has been updated to ERROR", id);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Loggable
+    public void updateMachineActiveStatus(String id) {
+        log.info("Updating machine {} status to ACTIVE", id);
+        Machine machine = machineRepository.findBySecretId(id).orElseThrow(() ->
+                new ResourceNotFoundException("Machine", "id", id));
+        MachineStatus machineStatus = MachineStatus.AVAILABLE;
+        machine.setStatus(machineStatus);
+        Machine updatedMachine = machineRepository.save(machine);
+        firebaseDatabase.getReference("WashingMachineList").child(updatedMachine.getSecretId())
+                .child("status").setValueAsync(machineStatus.name());
+        firebaseDatabase.getReference("WashingMachineList").child(updatedMachine.getSecretId())
+                .child("RealtimeStatus").setValueAsync("OFF");
+        log.info("Machine {} status has been updated to ACTIVE", id);
     }
 
     @Override
@@ -286,6 +328,10 @@ public class MachineServiceImpl implements MachineService{
             @Override
             public void onCancelled(DatabaseError error) {
                 future.completeExceptionally(error.toException());
+                machine.setStatus(MachineStatus.ERROR);
+                machineRepository.save(machine);
+                ref.child("status").setValueAsync("ERROR");
+                ref.child("RealtimeStatus").setValueAsync("ERROR");
                 log.error("Error checking machine RT status: {}", error.getMessage());
             }
         });
@@ -295,9 +341,11 @@ public class MachineServiceImpl implements MachineService{
                 machine.setStatus(MachineStatus.ERROR);
                 machineRepository.save(machine);
                 ref.child("status").setValueAsync("ERROR");
+                ref.child("RealtimeStatus").setValueAsync("ERROR");
                 log.warn("Machine {} is not responding", id);
             } else {
                 ref.child("status").setValueAsync(machine.getStatus().toString());
+                ref.child("RealtimeStatus").setValueAsync("OFF");
                 log.info("Machine {} is working properly", id);
             }
             return isWorking;
