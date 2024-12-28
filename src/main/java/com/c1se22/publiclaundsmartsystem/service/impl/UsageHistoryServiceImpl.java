@@ -2,6 +2,7 @@ package com.c1se22.publiclaundsmartsystem.service.impl;
 
 import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
 import com.c1se22.publiclaundsmartsystem.entity.*;
+import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
 import com.c1se22.publiclaundsmartsystem.enums.UsageHistoryStatus;
 import com.c1se22.publiclaundsmartsystem.event.WashingNearCompleteEvent;
 import com.c1se22.publiclaundsmartsystem.exception.ResourceNotFoundException;
@@ -36,7 +37,7 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
     WashingTypeRepository washingTypeRepository;
     OwnerWithdrawInfoRepository ownerWithdrawInfoRepository;
     UserRepository userRepository;
-    MachineService machineService;
+
     EventService eventService;
     FirebaseDatabase firebaseDatabase;
     @Override
@@ -105,7 +106,8 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         );
         usageHistory.setStatus(UsageHistoryStatus.COMPLETED);
         Machine machine = usageHistory.getMachine();
-        machineService.updateMachineStatus(machine.getId(), "AVAILABLE");
+        machine.setStatus(MachineStatus.AVAILABLE);
+        machineRepository.save(machine);
         firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId()).child("duration")
                 .setValueAsync(0);
         usageHistoryRepository.save(usageHistory);

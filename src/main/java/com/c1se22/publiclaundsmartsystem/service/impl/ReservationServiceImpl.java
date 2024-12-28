@@ -3,6 +3,7 @@ package com.c1se22.publiclaundsmartsystem.service.impl;
 import com.c1se22.publiclaundsmartsystem.annotation.Loggable;
 import com.c1se22.publiclaundsmartsystem.entity.*;
 import com.c1se22.publiclaundsmartsystem.enums.ErrorCode;
+import com.c1se22.publiclaundsmartsystem.enums.MachineStatus;
 import com.c1se22.publiclaundsmartsystem.enums.ReservationStatus;
 import com.c1se22.publiclaundsmartsystem.event.ReservationCreatedEvent;
 import com.c1se22.publiclaundsmartsystem.exception.APIException;
@@ -37,7 +38,6 @@ public class ReservationServiceImpl implements ReservationService {
     MachineRepository machineRepository;
     WashingTypeRepository washingTypeRepository;
     OwnerWithdrawInfoRepository ownerWithdrawInfoRepository;
-    MachineService machineService;
     UsageHistoryService usageHistoryService;
     EventService eventService;
     UserBanService userBanService;
@@ -130,7 +130,11 @@ public class ReservationServiceImpl implements ReservationService {
                     .machine(machine)
                     .washingType(washingType)
                     .build();
-            machineService.updateMachineStatus(machine.getId(), "RESERVED");
+            Machine machine1 = machineRepository.findById(reservationDto.getMachineId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Machine", "machineId", reservationDto.getMachineId().toString())
+            );
+            machine1.setStatus(MachineStatus.RESERVED);
+            machineRepository.save(machine1);
             eventService.publishEvent(new ReservationCreatedEvent(reservation));
             log.info("Successfully created reservation with ID: {}", reservation.getId());
             return mapToResponseDto(reservationRepository.save(reservation));
@@ -190,8 +194,11 @@ public class ReservationServiceImpl implements ReservationService {
         }
         user.setBalance(user.getBalance().subtract(savedReservation.getWashingType().getDefaultPrice()));
         userRepository.save(user);
-        Machine machine = savedReservation.getMachine();
-        machineService.updateMachineStatus(machine.getId(), "IN_USE");
+        Machine machine = machineRepository.findById(savedReservation.getMachine().getId()).orElseThrow(
+                () -> new ResourceNotFoundException("Machine", "machineId", savedReservation.getMachine().getId().toString())
+        );
+        machine.setStatus(MachineStatus.IN_USE);
+        machineRepository.save(machine);
         OwnerWithdrawInfo ownerWithdrawInfo = ownerWithdrawInfoRepository.findByOwnerUsername(machine.getUser().getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("OwnerWithdrawInfo", "ownerUsername", machine.getUser().getUsername()));
         ownerWithdrawInfo.setWithdrawAmount(ownerWithdrawInfo.getWithdrawAmount().add(savedReservation.getWashingType().getDefaultPrice()));
@@ -232,8 +239,11 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setStatus(ReservationStatus.CANCELED);
         reservation.setUpdatedAt(LocalDateTime.now());
         reservation.setEndTime(LocalDateTime.now());
-        Machine machine = reservation.getMachine();
-        machineService.updateMachineStatus(machine.getId(), "AVAILABLE");
+        Machine machine = machineRepository.findById(reservation.getMachine().getId()).orElseThrow(
+                () -> new ResourceNotFoundException("Machine", "machineId", reservation.getMachine().getId().toString())
+        );
+        machine.setStatus(MachineStatus.AVAILABLE);
+        machineRepository.save(machine);
         reservationRepository.save(reservation);
         userBanService.handleCancelReservation(user.getId());
         log.info("Successfully canceled reservation with ID: {}", reservation.getId());
