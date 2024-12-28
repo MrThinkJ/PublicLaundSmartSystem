@@ -110,8 +110,6 @@ public class UsageHistoryServiceImpl implements UsageHistoryService {
         machineRepository.save(machine);
         firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId()).child("duration")
                 .setValueAsync(0);
-        firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId()).child("status")
-                .setValueAsync(MachineStatus.FINISH.name());
         usageHistoryRepository.save(usageHistory);
     }
 

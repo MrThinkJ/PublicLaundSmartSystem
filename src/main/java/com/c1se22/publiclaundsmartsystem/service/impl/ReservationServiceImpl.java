@@ -15,6 +15,7 @@ import com.c1se22.publiclaundsmartsystem.payload.response.ReservationResponseDto
 import com.c1se22.publiclaundsmartsystem.payload.response.UsageHistoryDto;
 import com.c1se22.publiclaundsmartsystem.repository.*;
 import com.c1se22.publiclaundsmartsystem.service.*;
+import com.google.firebase.database.FirebaseDatabase;
 import lombok.AllArgsConstructor;
 import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ public class ReservationServiceImpl implements ReservationService {
     WashingTypeRepository washingTypeRepository;
     OwnerWithdrawInfoRepository ownerWithdrawInfoRepository;
     UsageHistoryService usageHistoryService;
+    FirebaseDatabase firebaseDatabase;
     EventService eventService;
     UserBanService userBanService;
 
@@ -135,6 +137,8 @@ public class ReservationServiceImpl implements ReservationService {
             );
             machine1.setStatus(MachineStatus.RESERVED);
             machineRepository.save(machine1);
+            firebaseDatabase.getReference("WashingMachineList")
+                    .child(machine1.getSecretId()).child("status").setValueAsync(MachineStatus.RESERVED.name());
             eventService.publishEvent(new ReservationCreatedEvent(reservation));
             log.info("Successfully created reservation with ID: {}", reservation.getId());
             return mapToResponseDto(reservationRepository.save(reservation));
@@ -199,6 +203,8 @@ public class ReservationServiceImpl implements ReservationService {
         );
         machine.setStatus(MachineStatus.IN_USE);
         machineRepository.save(machine);
+        firebaseDatabase.getReference("WashingMachineList")
+                .child(machine.getSecretId()).child("status").setValueAsync(MachineStatus.IN_USE.name());
         OwnerWithdrawInfo ownerWithdrawInfo = ownerWithdrawInfoRepository.findByOwnerUsername(machine.getUser().getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("OwnerWithdrawInfo", "ownerUsername", machine.getUser().getUsername()));
         ownerWithdrawInfo.setWithdrawAmount(ownerWithdrawInfo.getWithdrawAmount().add(savedReservation.getWashingType().getDefaultPrice()));

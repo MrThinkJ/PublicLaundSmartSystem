@@ -46,7 +46,7 @@ public class WashingCompleteEventHandler {
                 notificationService.sendNotification(event.getUsageHistory().getUser().getId(),
                         String.format("Máy %s đã giặt xong. Hãy lấy quần áo của bạn.",
                                 event.getUsageHistory().getMachine().getName()));
-                eventService.publishEvent(new WaitMachineEvent(event.getUsageHistory().getMachine().getId(), 5));
+                eventService.publishEvent(new WaitMachineEvent(event.getUsageHistory().getMachine().getId(), 1));
                 scheduledTasks.remove(taskId);
             };
             
