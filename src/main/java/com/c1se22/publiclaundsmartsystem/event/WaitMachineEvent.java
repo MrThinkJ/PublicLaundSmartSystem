@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class WaitMachineEvent {
+public class WaitMachineEvent implements AppEvent{
     private Integer machineId;
     private Integer duration;
 }

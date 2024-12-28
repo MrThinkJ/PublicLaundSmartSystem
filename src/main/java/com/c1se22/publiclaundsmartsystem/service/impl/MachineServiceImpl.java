@@ -206,7 +206,8 @@ public class MachineServiceImpl implements MachineService{
         MachineStatus machineStatus = MachineStatus.valueOf(status.toUpperCase());
         machine.setStatus(machineStatus);
         Machine updatedMachine = machineRepository.save(machine);
-        firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId()).child("status").setValueAsync(status);
+        firebaseDatabase.getReference("WashingMachineList").child(machine.getSecretId()).child("status")
+                .setValueAsync(status);
         log.info("Machine {} status has been updated to {}", id, status);
         return mapToDto(updatedMachine);
     }
