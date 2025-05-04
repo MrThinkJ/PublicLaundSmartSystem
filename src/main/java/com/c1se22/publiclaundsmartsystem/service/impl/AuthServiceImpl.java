@@ -17,6 +17,7 @@ import com.c1se22.publiclaundsmartsystem.repository.UserRepository;
 import com.c1se22.publiclaundsmartsystem.security.JwtProvider;
 import com.c1se22.publiclaundsmartsystem.service.AuthService;
 import com.c1se22.publiclaundsmartsystem.service.UserBanService;
+import jakarta.persistence.LockModeType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
